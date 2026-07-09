@@ -62,6 +62,7 @@ export default function BooksScreen() {
   const [readerPage, setReaderPage] = useState<number>(0);
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [readerMode, setReaderMode] = useState<"text" | "pdf">("text");
+  const [deleteTarget, setDeleteTarget] = useState<BookType | null>(null);
 
   // Load books
   const loadBooks = () => {
@@ -252,13 +253,18 @@ export default function BooksScreen() {
   };
 
   // Delete Book handler
-  const handleDelete = (e: React.MouseEvent, bookId: string) => {
+  const handleDelete = (e: React.MouseEvent, book: BookType) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to remove this publication from your catalog?")) {
-      const deleted = deleteBook(bookId);
+    setDeleteTarget(book);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      const deleted = deleteBook(deleteTarget.id);
       if (deleted) {
         loadBooks(); // refresh list immediately
       }
+      setDeleteTarget(null);
     }
   };
 
@@ -488,7 +494,7 @@ export default function BooksScreen() {
                         <div className="flex items-center gap-1.5">
                           {isOwnBook && (
                             <button
-                              onClick={(e) => handleDelete(e, book.id)}
+                              onClick={(e) => handleDelete(e, book)}
                               className="w-8 h-8 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all duration-200"
                               title="Delete Publication"
                             >
@@ -687,6 +693,75 @@ export default function BooksScreen() {
               )}
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modern custom confirmation dialog */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeleteTarget(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            
+            {/* Content Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="relative w-full max-w-md bg-[#0A0A0F] border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-10 p-6 space-y-6"
+            >
+              <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                <div className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 shrink-0">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                    Delete Publication
+                  </h3>
+                  <p className="text-[10px] text-gray-500 font-mono">
+                    This action is irreversible
+                  </p>
+                </div>
+                <button
+                  onClick={() => setDeleteTarget(null)}
+                  className="ml-auto w-8 h-8 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs text-gray-300 leading-relaxed">
+                  Are you sure you want to remove the publication <span className="font-bold text-white italic">"{deleteTarget.title}"</span> from your catalog?
+                </p>
+                <p className="text-[11px] text-gray-500 leading-normal bg-red-500/5 border border-red-500/10 rounded-xl p-3">
+                  This will permanently delete the metadata and its associated secure binary content from your IndexedDB workspace sandbox.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={() => setDeleteTarget(null)}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-gray-300 text-xs font-bold hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white text-xs font-bold hover:opacity-90 active:scale-95 transition-all shadow-md shadow-red-900/20"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
