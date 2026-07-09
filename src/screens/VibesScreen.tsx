@@ -1033,260 +1033,262 @@ function VibeCard({
   };
 
   return (
-    <div className="w-full h-full bg-[#08080C] pt-[76px] pb-3 px-4 md:px-6 flex flex-col md:grid md:grid-cols-12 md:gap-6 text-white overflow-y-auto md:overflow-hidden select-none">
-      {/* LEFT COLUMN: Holographic Media Deck */}
-      <div className="md:col-span-7 lg:col-span-8 flex flex-col h-full justify-between gap-4 overflow-hidden min-h-[350px] md:min-h-0">
-        
-        {/* Holographic Media Frame */}
-        <div 
-          id={`vibe-container-${vibe.id}`}
-          onClick={handleTapMedia}
-          className="relative flex-1 w-full bg-black/60 rounded-3xl border border-[#B026FF]/20 shadow-2xl shadow-[#B026FF]/10 overflow-hidden group cursor-pointer"
-        >
-          {vibe.videoSrc ? (
-            <motion.video
-              ref={videoRef}
-              src={vibe.videoSrc || undefined}
-              autoPlay={isActive}
-              muted={muted || !!vibe.audioUrl}
-              playsInline
-              className="absolute inset-0 w-full h-full object-contain"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              onTimeUpdate={handleTimeUpdate}
-              onLoadedMetadata={handleLoadedMetadata}
-              onEnded={() => {
-                onNext();
-                if (videoRef.current) {
-                  videoRef.current.currentTime = 0;
-                  videoRef.current.play().catch(() => {});
-                }
-              }}
-            />
-          ) : vibe.thumbnail ? (
-            <motion.img
-              src={vibe.thumbnail}
-              alt=""
-              className="absolute inset-0 w-full h-full object-contain"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              draggable={false}
-            />
-          ) : (
-            <div 
-              className={`absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 select-text ${
-                !(vibe.bgColor || vibe.colorTag) ? 'bg-gradient-to-br from-[#1b0a2a] via-[#0D0D14] to-[#0d0010]' : ''
-              }`}
-              style={(vibe.bgColor || vibe.colorTag) ? { backgroundColor: vibe.bgColor || vibe.colorTag } : undefined}
-            >
-              <p className={`text-2xl md:text-4xl font-black text-center leading-relaxed max-w-xl font-sans tracking-tight ${
-                (vibe.bgColor || vibe.colorTag) ? 'text-[#0D0010]' : 'text-white'
-              }`}>
-                {vibe.caption}
-              </p>
-            </div>
-          )}
-
-          {/* Futuristic subtle grid overlay & scanline */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,6px_100%] pointer-events-none opacity-20" />
+    <>
+      {/* ────────────────── DESKTOP & TABLET LAYOUT (>= md) ────────────────── */}
+      <div className="hidden md:grid w-full h-full bg-[#08080C] pt-[76px] pb-3 px-4 md:px-6 md:grid-cols-12 md:gap-6 text-white md:overflow-hidden select-none">
+        {/* LEFT COLUMN: Holographic Media Deck */}
+        <div className="md:col-span-7 lg:col-span-8 flex flex-col h-full justify-between gap-4 overflow-hidden min-h-[350px] md:min-h-0">
           
-          {/* Edge glowing accents */}
-          <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#00F0FF]/40 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-[#B026FF]/40 to-transparent" />
-
-          {/* Toast Notification Container inside Frame */}
-          <AnimatePresence>
-            {toastMessage && (
-              <motion.div 
-                initial={{ opacity: 0, y: -20, x: "-50%" }}
-                animate={{ opacity: 1, y: 0, x: "-50%" }}
-                exit={{ opacity: 0, y: -20, x: "-50%" }}
-                className="absolute top-6 left-1/2 z-30 bg-black/90 backdrop-blur-md px-4 py-2 flex items-center gap-2 rounded-full border border-white/20 select-none pointer-events-none"
-              >
-                <span className="text-white text-xs font-bold tracking-wider">{toastMessage}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Tap Play/Pause overlay */}
-          <AnimatePresence>
-            {!isPlaying && (
-              <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 1.2, opacity: 0 }}
-                className="absolute inset-0 m-auto w-14 h-14 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center z-20 pointer-events-none shadow-lg shadow-black/40"
-              >
-                <Play className="w-6 h-6 text-white fill-white ml-0.5" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Double-tap burst */}
-          {burst && (
-            <HeartBurst x={burst.x} y={burst.y} onDone={() => setBurst(null)} />
-          )}
-        </div>
-
-        {/* Console Deck Control Bar (Playbar) — single compact row */}
-        <div className="flex items-center bg-[#0F0F15] border border-white/10 rounded-2xl p-2.5 px-3.5 w-full select-none gap-2.5 transition-all duration-300 hover:shadow-[0_0_25px_rgba(176,38,255,0.2),_0_0_50px_rgba(0,240,255,0.1)] hover:border-[#B026FF]/30">
-
-          {/* Play / Pause */}
-          <button
-            onClick={handleTogglePlayWithGesture}
-            title={isPlaying ? 'Pause' : 'Play'}
-            className="p-2 rounded-xl bg-white/5 hover:bg-[#B026FF]/20 text-white transition-all duration-300 active:scale-95 hover:scale-110 border border-white/5 hover:border-[#B026FF]/30 hover:shadow-[0_0_15px_rgba(176,38,255,0.4)] shrink-0 cursor-pointer animate-none"
+          {/* Holographic Media Frame */}
+          <div 
+            id={`vibe-container-${vibe.id}`}
+            onClick={handleTapMedia}
+            className="relative flex-1 w-full bg-black/60 rounded-3xl border border-[#B026FF]/20 shadow-2xl shadow-[#B026FF]/10 overflow-hidden group cursor-pointer"
           >
-            {isPlaying ? <Pause className="w-4 h-4 text-[#00F0FF]" /> : <Play className="w-4 h-4 text-[#B026FF] fill-[#B026FF]" />}
-          </button>
-
-          {/* Seeker Line — 50% shorter with 50% height reduction */}
-          <div
-            onClick={handleSeek}
-            className="flex-1 h-[2px] bg-white/10 rounded-full relative cursor-pointer group/seeker transition-all duration-300 hover:h-[4px]"
-            title="Click to Seek Vibe Progress"
-          >
-            {/* Click hit box padding */}
-            <div className="absolute inset-y-[-10px] inset-x-0 cursor-pointer" />
-
-            <div className="absolute inset-0 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-[#B026FF] via-[#7B2cFF] to-[#00F0FF] rounded-full transition-all duration-100 ease-out group-hover/seeker:shadow-[0_0_8px_#00F0FF]"
-                style={{ width: `${progress}%` }}
+            {vibe.videoSrc ? (
+              <motion.video
+                ref={videoRef}
+                src={vibe.videoSrc || undefined}
+                autoPlay={isActive}
+                muted={muted || !!vibe.audioUrl}
+                playsInline
+                className="absolute inset-0 w-full h-full object-contain"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onEnded={() => {
+                  onNext();
+                  if (videoRef.current) {
+                    videoRef.current.currentTime = 0;
+                    videoRef.current.play().catch(() => {});
+                  }
+                }}
               />
-            </div>
+            ) : vibe.thumbnail ? (
+              <motion.img
+                src={vibe.thumbnail}
+                alt=""
+                className="absolute inset-0 w-full h-full object-contain"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+                draggable={false}
+              />
+            ) : (
+              <div 
+                className={`absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 select-text ${
+                  !(vibe.bgColor || vibe.colorTag) ? 'bg-gradient-to-br from-[#1b0a2a] via-[#0D0D14] to-[#0d0010]' : ''
+                }`}
+                style={(vibe.bgColor || vibe.colorTag) ? { backgroundColor: vibe.bgColor || vibe.colorTag } : undefined}
+              >
+                <p className={`text-2xl md:text-4xl font-black text-center leading-relaxed max-w-xl font-sans tracking-tight ${
+                  (vibe.bgColor || vibe.colorTag) ? 'text-[#0D0010]' : 'text-white'
+                }`}>
+                  {vibe.caption}
+                </p>
+              </div>
+            )}
 
-            {/* Seeker knob on hover — gorgeous pulsing glow */}
-            <div
-              className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_12px_#00F0FF,_0_0_4px_#00F0FF] opacity-0 scale-50 group-hover/seeker:opacity-100 group-hover/seeker:scale-100 transition-all duration-300 pointer-events-none"
-              style={{ left: `calc(${progress}% - 5px)` }}
-            />
+            {/* Futuristic subtle grid overlay & scanline */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,6px_100%] pointer-events-none opacity-20" />
+            
+            {/* Edge glowing accents */}
+            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#00F0FF]/40 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-[#B026FF]/40 to-transparent" />
+
+            {/* Toast Notification Container inside Frame */}
+            <AnimatePresence>
+              {toastMessage && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -20, x: "-50%" }}
+                  animate={{ opacity: 1, y: 0, x: "-50%" }}
+                  exit={{ opacity: 0, y: -20, x: "-50%" }}
+                  className="absolute top-6 left-1/2 z-30 bg-black/90 backdrop-blur-md px-4 py-2 flex items-center gap-2 rounded-full border border-white/20 select-none pointer-events-none"
+                >
+                  <span className="text-white text-xs font-bold tracking-wider">{toastMessage}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Tap Play/Pause overlay */}
+            <AnimatePresence>
+              {!isPlaying && (
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 1.2, opacity: 0 }}
+                  className="absolute inset-0 m-auto w-14 h-14 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center z-20 pointer-events-none shadow-lg shadow-black/40"
+                >
+                  <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Double-tap burst */}
+            {burst && (
+              <HeartBurst x={burst.x} y={burst.y} onDone={() => setBurst(null)} />
+            )}
           </div>
 
-          {/* Audio Sound Toggle */}
-          <button
-            onClick={handleToggleMuteWithGesture}
-            title={muted ? 'Unmute' : 'Mute'}
-            className="p-2 rounded-xl bg-white/5 hover:bg-[#00F0FF]/20 text-white transition-all duration-300 active:scale-95 hover:scale-110 border border-white/5 hover:border-[#00F0FF]/30 hover:shadow-[0_0_15px_rgba(0,240,255,0.4)] shrink-0 cursor-pointer"
-          >
-            {muted ? <VolumeX className="w-4 h-4 text-white/40" /> : <Volume2 className="w-4 h-4 text-[#00F0FF]" />}
-          </button>
+          {/* Console Deck Control Bar (Playbar) — single compact row */}
+          <div className="flex items-center bg-[#0F0F15] border border-white/10 rounded-2xl p-2.5 px-3.5 w-full select-none gap-2.5 transition-all duration-300 hover:shadow-[0_0_25px_rgba(176,38,255,0.2),_0_0_50px_rgba(0,240,255,0.1)] hover:border-[#B026FF]/30">
 
-          {/* Fullscreen Toggle */}
-          <button
-            onClick={handleToggleFullscreen}
-            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-all duration-300 active:scale-95 hover:scale-110 border border-white/5 hover:border-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.25)] shrink-0 cursor-pointer"
-          >
-            {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-          </button>
-        </div>
+            {/* Play / Pause */}
+            <button
+              onClick={handleTogglePlayWithGesture}
+              title={isPlaying ? 'Pause' : 'Play'}
+              className="p-2 rounded-xl bg-white/5 hover:bg-[#B026FF]/20 text-white transition-all duration-300 active:scale-95 hover:scale-110 border border-white/5 hover:border-[#B026FF]/30 hover:shadow-[0_0_15px_rgba(176,38,255,0.4)] shrink-0 cursor-pointer animate-none"
+            >
+              {isPlaying ? <Pause className="w-4 h-4 text-[#00F0FF]" /> : <Play className="w-4 h-4 text-[#B026FF] fill-[#B026FF]" />}
+            </button>
 
-      </div>
+            {/* Seeker Line */}
+            <div
+              onClick={handleSeek}
+              className="flex-1 h-[2px] bg-white/10 rounded-full relative cursor-pointer group/seeker transition-all duration-300 hover:h-[4px]"
+              title="Click to Seek Vibe Progress"
+            >
+              {/* Click hit box padding */}
+              <div className="absolute inset-y-[-10px] inset-x-0 cursor-pointer" />
 
-      {/* RIGHT COLUMN: Cybernetic Telemetry & Interactive Console */}
-      <div 
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
-        className="md:col-span-5 lg:col-span-4 flex flex-col h-full gap-3 overflow-hidden min-h-0 md:min-h-0"
-      >
-        
-        {/* Main Interface Console Board */}
-        <div className="flex-1 bg-[#0D0D14]/90 backdrop-blur-lg border border-white/10 rounded-3xl p-3.5 flex flex-col gap-3 overflow-hidden min-h-0 shadow-2xl shadow-[#B026FF]/5">
-          
-          {/* Creator Profile & Circular Telemetry Header */}
-          <div className="flex items-center justify-between border-b border-white/5 pb-2.5 shrink-0">
-            <div className="flex items-center gap-3">
-              {/* Holographic Avatar with Live Telemetry Progress Circular Border */}
-              <div className="relative w-11 h-11 flex items-center justify-center shrink-0">
-                {/* SVG circular progress indicator */}
-                <svg className="absolute inset-0 w-full h-full -rotate-90 scale-[1.08] select-none pointer-events-none drop-shadow-[0_0_6px_rgba(0,240,255,0.3)]" viewBox="0 0 36 36">
-                  <path
-                    className="text-white/5"
-                    strokeWidth="2.5"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path
-                    strokeWidth="2.5"
-                    strokeDasharray={`${vibe.vibeScore || 80}, 100`}
-                    strokeLinecap="round"
-                    stroke="url(#avatar-vibe-grad)"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <defs>
-                    <linearGradient id="avatar-vibe-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#B026FF" />
-                      <stop offset="100%" stopColor="#00F0FF" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <img 
-                  src={displayAvatar || null} 
-                  alt={displayUser} 
-                  onClick={handleProfileClick}
-                  className="w-9 h-9 rounded-full object-cover shadow-inner cursor-pointer hover:scale-105 active:scale-95 transition-transform z-10 border border-black" 
+              <div className="absolute inset-0 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#B026FF] via-[#7B2cFF] to-[#00F0FF] rounded-full transition-all duration-100 ease-out group-hover/seeker:shadow-[0_0_8px_#00F0FF]"
+                  style={{ width: `${progress}%` }}
                 />
               </div>
 
-              <div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span 
-                    onClick={handleProfileClick}
-                    className="font-bold text-sm text-white hover:text-[#00F0FF] cursor-pointer transition-colors leading-none"
-                  >
-                    {displayUser}
-                  </span>
-                  <span className="text-[8px] text-[#B026FF] font-black border border-[#B026FF]/40 px-1.5 py-0.5 rounded-full uppercase tracking-widest bg-[#B026FF]/10 select-none">
-                    {vibe?.creatorTier}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span 
-                    onClick={handleProfileClick}
-                    className="text-[11px] text-white/40 hover:text-white cursor-pointer transition-colors leading-none"
-                  >
-                    {displayHandle}
-                  </span>
-                  <span className="text-[9px] text-white/30 font-mono">•</span>
-                  <span className="text-[9px] text-[#00F0FF] font-mono font-bold tracking-tight">
-                    VIBE: {vibe.vibeScore.toFixed(0)}%
-                  </span>
-                </div>
-              </div>
+              {/* Seeker knob on hover — gorgeous pulsing glow */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_12px_#00F0FF,_0_0_4px_#00F0FF] opacity-0 scale-50 group-hover/seeker:opacity-100 group-hover/seeker:scale-100 transition-all duration-300 pointer-events-none"
+                style={{ left: `calc(${progress}% - 5px)` }}
+              />
             </div>
 
-            {isMe ? (
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (window.confirm("Are you sure you want to delete this vibe? This cannot be undone.")) {
-                    onDelete?.(vibe.id);
-                  }
-                }}
-                className="text-[9px] font-black px-2.5 py-1.5 rounded-xl tracking-wider transition-all active:scale-95 border border-red-500/30 text-red-500 bg-red-500/10 hover:bg-red-500/20 shrink-0"
-                title="Delete Vibe"
-              >
-                DELETE
-              </button>
-            ) : (
-              <button 
-                onClick={handleFollowToggle}
-                className={`text-[9px] font-black px-2.5 py-1.5 rounded-xl tracking-widest transition-all active:scale-95 border shrink-0 ${
-                  followStatus.following 
-                    ? 'text-white/40 bg-white/5 border-white/10 hover:bg-white/10' 
-                    : 'text-[#00F0FF] bg-[#00F0FF]/10 hover:bg-[#00F0FF]/20 border-[#00F0FF]/30 hover:shadow-[0_0_10px_rgba(0,240,255,0.2)]'
-                }`}
-              >
-                {followStatus.following ? 'FOLLOWING' : 'FOLLOW'}
-              </button>
-            )}
+            {/* Audio Sound Toggle */}
+            <button
+              onClick={handleToggleMuteWithGesture}
+              title={muted ? 'Unmute' : 'Mute'}
+              className="p-2 rounded-xl bg-white/5 hover:bg-[#00F0FF]/20 text-white transition-all duration-300 active:scale-95 hover:scale-110 border border-white/5 hover:border-[#00F0FF]/30 hover:shadow-[0_0_15px_rgba(0,240,255,0.4)] shrink-0 cursor-pointer"
+            >
+              {muted ? <VolumeX className="w-4 h-4 text-white/40" /> : <Volume2 className="w-4 h-4 text-[#00F0FF]" />}
+            </button>
+
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={handleToggleFullscreen}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-all duration-300 active:scale-95 hover:scale-110 border border-white/5 hover:border-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.25)] shrink-0 cursor-pointer"
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </button>
           </div>
+
+        </div>
+
+        {/* RIGHT COLUMN: Cybernetic Telemetry & Interactive Console */}
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="md:col-span-5 lg:col-span-4 flex flex-col h-full gap-3 overflow-hidden min-h-0 md:min-h-0"
+        >
+          
+          {/* Main Interface Console Board */}
+          <div className="flex-1 bg-[#0D0D14]/90 backdrop-blur-lg border border-white/10 rounded-3xl p-3.5 flex flex-col gap-3 overflow-hidden min-h-0 shadow-2xl shadow-[#B026FF]/5">
+            
+            {/* Creator Profile & Circular Telemetry Header */}
+            <div className="flex items-center justify-between border-b border-white/5 pb-2.5 shrink-0">
+              <div className="flex items-center gap-3">
+                {/* Holographic Avatar with Live Telemetry Progress Circular Border */}
+                <div className="relative w-11 h-11 flex items-center justify-center shrink-0">
+                  {/* SVG circular progress indicator */}
+                  <svg className="absolute inset-0 w-full h-full -rotate-90 scale-[1.08] select-none pointer-events-none drop-shadow-[0_0_6px_rgba(0,240,255,0.3)]" viewBox="0 0 36 36">
+                    <path
+                      className="text-white/5"
+                      strokeWidth="2.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      strokeWidth="2.5"
+                      strokeDasharray={`${vibe.vibeScore || 80}, 100`}
+                      strokeLinecap="round"
+                      stroke="url(#avatar-vibe-grad)"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <defs>
+                      <linearGradient id="avatar-vibe-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#B026FF" />
+                        <stop offset="100%" stopColor="#00F0FF" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <img 
+                    src={displayAvatar || null} 
+                    alt={displayUser} 
+                    onClick={handleProfileClick}
+                    className="w-9 h-9 rounded-full object-cover shadow-inner cursor-pointer hover:scale-105 active:scale-95 transition-transform z-10 border border-black" 
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span 
+                      onClick={handleProfileClick}
+                      className="font-bold text-sm text-white hover:text-[#00F0FF] cursor-pointer transition-colors leading-none"
+                    >
+                      {displayUser}
+                    </span>
+                    <span className="text-[8px] text-[#B026FF] font-black border border-[#B026FF]/40 px-1.5 py-0.5 rounded-full uppercase tracking-widest bg-[#B026FF]/10 select-none">
+                      {vibe?.creatorTier}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span 
+                      onClick={handleProfileClick}
+                      className="text-[11px] text-white/40 hover:text-white cursor-pointer transition-colors leading-none"
+                    >
+                      {displayHandle}
+                    </span>
+                    <span className="text-[9px] text-white/30 font-mono">•</span>
+                    <span className="text-[9px] text-[#00F0FF] font-mono font-bold tracking-tight">
+                      VIBE: {vibe.vibeScore.toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {isMe ? (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm("Are you sure you want to delete this vibe? This cannot be undone.")) {
+                      onDelete?.(vibe.id);
+                    }
+                  }}
+                  className="text-[9px] font-black px-2.5 py-1.5 rounded-xl tracking-wider transition-all active:scale-95 border border-red-500/30 text-red-500 bg-red-500/10 hover:bg-red-500/20 shrink-0"
+                  title="Delete Vibe"
+                >
+                  DELETE
+                </button>
+              ) : (
+                <button 
+                  onClick={handleFollowToggle}
+                  className={`text-[9px] font-black px-2.5 py-1.5 rounded-xl tracking-widest transition-all active:scale-95 border shrink-0 ${
+                    followStatus.following 
+                      ? 'text-white/40 bg-white/5 border-white/10 hover:bg-white/10' 
+                      : 'text-[#00F0FF] bg-[#00F0FF]/10 hover:bg-[#00F0FF]/20 border-[#00F0FF]/30 hover:shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                  }`}
+                >
+                  {followStatus.following ? 'FOLLOWING' : 'FOLLOW'}
+                </button>
+              )}
+            </div>
 
           {vibe.isReshare && (
             <div className="flex items-center gap-1.5 text-[9px] text-[#00F0FF] font-mono font-bold bg-[#00F0FF]/10 border border-[#00F0FF]/25 px-2.5 py-1 rounded-lg w-fit select-none shrink-0">
@@ -1507,6 +1509,388 @@ function VibeCard({
 
       </div>
 
+      </div>
+
+      {/* ────────────────── MOBILE LAYOUT (< md) ────────────────── */}
+      <div className="flex md:hidden flex-col w-full h-full relative bg-[#040406] text-white overflow-hidden select-none">
+        
+        {/* Full-Screen Immersive Portrait Media Viewport */}
+        <div 
+          id={`vibe-container-mobile-${vibe.id}`}
+          onClick={handleTapMedia}
+          className="absolute inset-0 w-full h-full bg-black z-0 cursor-pointer"
+        >
+          {vibe.videoSrc ? (
+            <motion.video
+              ref={videoRef}
+              src={vibe.videoSrc || undefined}
+              autoPlay={isActive}
+              muted={muted || !!vibe.audioUrl}
+              playsInline
+              className="w-full h-full object-cover"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onEnded={() => {
+                onNext();
+                if (videoRef.current) {
+                  videoRef.current.currentTime = 0;
+                  videoRef.current.play().catch(() => {});
+                }
+              }}
+            />
+          ) : vibe.thumbnail ? (
+            <motion.img
+              src={vibe.thumbnail}
+              alt=""
+              className="w-full h-full object-cover"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              draggable={false}
+            />
+          ) : (
+            <div 
+              className={`w-full h-full flex flex-col items-center justify-center p-6 select-text ${
+                !(vibe.bgColor || vibe.colorTag) ? 'bg-gradient-to-br from-[#1b0a2a] via-[#0D0D14] to-[#0d0010]' : ''
+              }`}
+              style={(vibe.bgColor || vibe.colorTag) ? { backgroundColor: vibe.bgColor || vibe.colorTag } : undefined}
+            >
+              <p className={`text-xl font-black text-center leading-relaxed max-w-md font-sans tracking-tight ${
+                (vibe.bgColor || vibe.colorTag) ? 'text-[#0D0010]' : 'text-white'
+              }`}>
+                {vibe.caption}
+              </p>
+            </div>
+          )}
+
+          {/* Futuristic matrix scanning grid lines & scanline overlays */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.35)_50%),linear-gradient(90deg,rgba(176,38,255,0.03),rgba(0,240,255,0.01),rgba(176,38,255,0.03))] bg-[size:100%_4px,6px_100%] pointer-events-none opacity-25" />
+          
+          {/* Subtle vignette/shadow layers for absolute readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/75 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black/40 to-transparent pointer-events-none" />
+
+          {/* Double-tap burst */}
+          {burst && (
+            <HeartBurst x={burst.x} y={burst.y} onDone={() => setBurst(null)} />
+          )}
+        </div>
+
+        {/* HUD Top Bar Overlay */}
+        <div className="absolute top-[86px] left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
+          <div className="bg-black/40 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full flex items-center gap-1.5 select-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-pulse" />
+            <span className="text-[10px] font-mono font-bold tracking-widest text-[#00F0FF] uppercase">
+              LIVE_BROADCAST
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-2 pointer-events-auto">
+            {/* Quick sound switch */}
+            <button
+              onClick={handleToggleMuteWithGesture}
+              className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white active:scale-90"
+              title={muted ? 'Unmute' : 'Mute'}
+            >
+              {muted ? <VolumeX className="w-3.5 h-3.5 text-white/40" /> : <Volume2 className="w-3.5 h-3.5 text-[#00F0FF]" />}
+            </button>
+            {/* Fullscreen switch */}
+            <button
+              onClick={handleToggleFullscreen}
+              className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white active:scale-90"
+              title="Fullscreen"
+            >
+              <Maximize className="w-3.5 h-3.5 text-white/80" />
+            </button>
+          </div>
+        </div>
+
+        {/* HUD Right Actions Column Overlay */}
+        <div className="absolute right-3.5 bottom-24 flex flex-col items-center gap-4.5 z-10 select-none pointer-events-auto">
+          {/* Creator Profile Avatar with Live telemetry ring */}
+          <div className="relative w-12 h-12 flex items-center justify-center">
+            {/* SVG circle progress around avatar */}
+            <svg className="absolute inset-0 w-full h-full -rotate-90 scale-[1.08] select-none pointer-events-none drop-shadow-[0_0_6px_rgba(0,240,255,0.4)]" viewBox="0 0 36 36">
+              <path
+                className="text-white/5"
+                strokeWidth="2.5"
+                stroke="currentColor"
+                fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+              <path
+                strokeWidth="2.5"
+                strokeDasharray={`${vibe.vibeScore || 80}, 100`}
+                strokeLinecap="round"
+                stroke="url(#avatar-vibe-grad-mobile)"
+                fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+              <defs>
+                <linearGradient id="avatar-vibe-grad-mobile" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#B026FF" />
+                  <stop offset="100%" stopColor="#00F0FF" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <img 
+              src={displayAvatar || null} 
+              alt={displayUser} 
+              onClick={handleProfileClick}
+              className="w-10 h-10 rounded-full object-cover shadow-inner border border-black z-10" 
+            />
+          </div>
+
+          {/* Pulse / Like Button */}
+          <button 
+            onClick={() => {
+              setLiked(l => {
+                const next = !l;
+                if (next) {
+                  useNotificationStore.getState().addNotification({
+                    type: 'vibe_like',
+                    user: displayUser,
+                    avatar: displayAvatar,
+                    text: 'liked your vibe',
+                    time: 'Just now',
+                    vibeId: vibe.id,
+                  });
+                }
+                setPulses(p => {
+                  const newP = next ? p + 1 : p - 1;
+                  try {
+                    const arr: string[] = JSON.parse(localStorage.getItem('skrimchat_vibe_liked') || '[]');
+                    const updated = next ? [...arr.filter(x => x !== vibe.id), vibe.id] : arr.filter(x => x !== vibe.id);
+                    localStorage.setItem('skrimchat_vibe_liked', JSON.stringify(updated));
+                    const c: Record<string,number> = JSON.parse(localStorage.getItem('skrimchat_vibe_counts') || '{}');
+                    c[vibe.id] = newP;
+                    localStorage.setItem('skrimchat_vibe_counts', JSON.stringify(c));
+                  } catch (e) {}
+                  return newP;
+                });
+                return next;
+              });
+              incrementStat('reactionsSent', 1);
+              incrementStat('pulseScore', 3);
+            }}
+            className="flex flex-col items-center gap-1 group active:scale-95"
+          >
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center border transition-all ${
+              liked 
+                ? 'bg-[#B026FF]/25 border-[#B026FF] text-[#B026FF] shadow-[0_0_15px_rgba(176,38,255,0.4)]' 
+                : 'bg-black/40 backdrop-blur-md border-white/10 text-white/80'
+            }`}>
+              <Zap className={`w-5 h-5 ${liked ? 'fill-[#B026FF]' : ''}`} />
+            </div>
+            <span className="text-[10px] font-mono font-bold text-white drop-shadow-md">{fmt(pulses)}</span>
+          </button>
+
+          {/* Comments Button — Toggles comment drawer */}
+          <button 
+            onClick={() => setShowComments(true)}
+            className="flex flex-col items-center gap-1 active:scale-95"
+          >
+            <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/80">
+              <MessageCircle className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-mono font-bold text-white drop-shadow-md">{fmt(commentCount)}</span>
+          </button>
+
+          {/* Save / Bookmark Button */}
+          <button 
+            onClick={() => {
+              if (saved) {
+                unsavePost(vibe.id);
+                setToastMessage("Removed from saved vibes");
+              } else {
+                savePost(vibe.id, vibe);
+                setToastMessage("Saved vibe to Identity");
+              }
+              setTimeout(() => setToastMessage(''), 2000);
+            }}
+            className="flex flex-col items-center gap-1 active:scale-95"
+          >
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center border transition-all ${
+              saved 
+                ? 'bg-[#00F0FF]/25 border-[#00F0FF] text-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.4)]' 
+                : 'bg-black/40 backdrop-blur-md border-white/10 text-white/80'
+            }`}>
+              <Bookmark className={`w-5 h-5 ${saved ? 'fill-[#00F0FF]' : ''}`} />
+            </div>
+            <span className="text-[10px] font-mono font-bold text-white drop-shadow-md">{saved ? 'SAVED' : 'SAVE'}</span>
+          </button>
+
+          {/* Reshare / Repost Button */}
+          <button 
+            onClick={handleReshare}
+            className="flex flex-col items-center gap-1 active:scale-95"
+          >
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center border transition-all ${
+              reshared 
+                ? 'bg-green-500/25 border-green-500 text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]' 
+                : 'bg-black/40 backdrop-blur-md border-white/10 text-white/80'
+            }`}>
+              <Repeat className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-mono font-bold text-white drop-shadow-md">{fmt(resharesCount)}</span>
+          </button>
+
+          {/* External Share Link Button */}
+          <button 
+            onClick={handleShare}
+            className="flex flex-col items-center gap-1 active:scale-95"
+            title="External Share"
+          >
+            <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/80">
+              <Share2 className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-mono font-bold text-white drop-shadow-md">SHARE</span>
+          </button>
+        </div>
+
+        {/* HUD Bottom Content Overlays (Metadata, Captions, Music Ticker) */}
+        <div className="absolute left-4 right-18 bottom-6 flex flex-col gap-2.5 z-10 pointer-events-none select-text">
+          
+          {/* User profile identifier row */}
+          <div className="flex items-center gap-2 pointer-events-auto">
+            <span 
+              onClick={handleProfileClick}
+              className="font-black text-sm text-white hover:text-[#00F0FF] cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+            >
+              {displayHandle}
+            </span>
+            <span className="text-[7.5px] text-[#B026FF] font-black border border-[#B026FF]/55 px-1.5 py-0.5 rounded-full uppercase tracking-wider bg-[#B026FF]/20 select-none">
+              {vibe?.creatorTier}
+            </span>
+            <span className="text-[9px] text-[#00F0FF] font-mono font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+              {vibe.vibeScore.toFixed(0)}%
+            </span>
+          </div>
+
+          {/* Expandable Caption Overlay */}
+          <div className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-xs leading-relaxed max-h-[76px] overflow-y-auto no-scrollbar pointer-events-auto">
+            <Caption text={vibe.caption} />
+          </div>
+
+          {/* Hashtag List */}
+          {vibe.hashtags && vibe.hashtags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 select-none pointer-events-auto">
+              {vibe.hashtags.slice(0, 3).map((tag, idx) => (
+                <span key={idx} className="text-[#00F0FF] font-mono font-extrabold text-[9px] bg-black/40 px-2 py-0.5 rounded-md border border-[#00F0FF]/25 shadow-sm">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Curated looping Music capsule */}
+          <div className="flex items-center gap-1.5 text-[#B026FF] bg-[#B026FF]/15 border border-[#B026FF]/35 rounded-full px-3 py-1 w-fit select-none pointer-events-auto max-w-[200px] truncate">
+            <Music className="w-3.5 h-3.5 animate-pulse shrink-0 text-[#B026FF]" />
+            <span className="text-[9px] font-mono font-black tracking-tight truncate leading-none uppercase">
+              {vibe.audio?.split('·')[0] || 'Original Audio'}
+            </span>
+          </div>
+        </div>
+
+        {/* Timeline bottom seeker line */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-10 pointer-events-auto cursor-pointer" onClick={handleSeek}>
+          <div 
+            className="h-full bg-gradient-to-r from-[#B026FF] via-[#7B2cFF] to-[#00F0FF] transition-all duration-100 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        {/* Sliding Comments Panel for Mobile */}
+        <AnimatePresence>
+          {showComments && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.6 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/70 z-30 pointer-events-auto"
+                onClick={() => setShowComments(false)}
+              />
+              {/* Slide-Up Cyber comments console sheet */}
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 26, stiffness: 220 }}
+                className="absolute bottom-0 left-0 right-0 h-[65%] bg-[#0A0A0F]/95 backdrop-blur-xl border-t border-white/10 rounded-t-3xl p-4 flex flex-col z-40 pointer-events-auto shadow-[0_-15px_30px_rgba(0,0,0,0.8)]"
+              >
+                {/* Grab handle */}
+                <div className="flex justify-center mb-1.5 shrink-0"><div className="w-10 h-1 rounded-full bg-white/20" /></div>
+
+                {/* Stream Header info */}
+                <div className="flex items-center justify-between border-b border-white/5 pb-2.5 mb-3.5 shrink-0 select-none">
+                  <span className="font-mono text-xs text-[#00F0FF] font-black tracking-widest flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#B026FF] animate-pulse" />
+                    SECURE_COMMENTS_STREAM // {fmt(commentCount)} NODES
+                  </span>
+                  <button 
+                    onClick={() => setShowComments(false)}
+                    className="text-white/40 hover:text-white text-[10px] font-black border border-white/10 px-2.5 py-1 rounded-lg uppercase tracking-wide transition-all bg-white/5 active:scale-95"
+                  >
+                    CLOSE
+                  </button>
+                </div>
+
+                {/* Scrollable comments list — bounded completely inside height */}
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
+                  {commentsList.map((c, i) => (
+                    <div key={c.id || i} className="flex gap-2.5 text-xs">
+                      <img 
+                        src={`https://i.pravatar.cc/150?img=${(i + 20) % 70}`} 
+                        className="w-7 h-7 rounded-full object-cover shrink-0 border border-white/10" 
+                        alt="" 
+                      />
+                      <div className="flex-1 bg-white/5 p-2.5 rounded-xl border border-white/5">
+                        <div className="flex justify-between text-[10px] text-white/30 mb-1 font-mono">
+                          <span className="font-bold text-[#B026FF]">{c.user}</span>
+                          <span>{c.time}</span>
+                        </div>
+                        <p className="text-white/90 leading-relaxed text-[11px] select-text">{c.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {commentsList.length === 0 && (
+                    <div className="text-center py-12 text-white/30 text-xs select-none">No active logs. Broadcast a message below!</div>
+                  )}
+                </div>
+
+                {/* Form message broadcaster */}
+                <form 
+                  onSubmit={(e) => { e.preventDefault(); handleAddComment(); }} 
+                  className="flex gap-2 mt-3 pt-3 border-t border-white/5 shrink-0"
+                >
+                  <input
+                    type="text"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    placeholder="Inject encrypted log..."
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white transition-all duration-300 focus:outline-none focus:bg-white/10 focus:border-[#B026FF] placeholder-white/20 font-mono"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4.5 rounded-xl bg-gradient-to-r from-[#B026FF] to-[#7B2cFF] text-white flex items-center justify-center transition-all duration-300 active:scale-95"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </form>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+      </div>
+
+      {/* Share sheet popup shared by both platforms */}
       <PulseSendSheet
         isOpen={showShareSheet}
         onClose={() => setShowShareSheet(false)}
@@ -1538,8 +1922,7 @@ function VibeCard({
           }
         }}
       />
-
-    </div>
+    </>
   );
 }
 
