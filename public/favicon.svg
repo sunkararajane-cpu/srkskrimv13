@@ -1,49 +1,111 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <defs>
-    <linearGradient id="skrimGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#B026FF" />
-      <stop offset="100%" stop-color="#00F0FF" />
+    <!-- Premium Neon Violet Gradient for Upper S-Loop -->
+    <linearGradient id="violetGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E040FF" />
+      <stop offset="100%" stop-color="#8A00FF" />
     </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="6" result="blur" />
+
+    <!-- Vibrant Neon Cyan Gradient for Lower S-Loop -->
+    <linearGradient id="cyanGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F5FF" />
+      <stop offset="100%" stop-color="#0072FF" />
+    </linearGradient>
+
+    <!-- Electric White-to-Cyan Gradient for the Connecting Zap -->
+    <linearGradient id="zapGradient" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="50%" stop-color="#33F5FF" />
+      <stop offset="100%" stop-color="#00A3FF" />
+    </linearGradient>
+
+    <!-- Border Frame Gradient -->
+    <linearGradient id="borderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8A00FF" stop-opacity="0.8" />
+      <stop offset="50%" stop-color="#4B0099" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#00F5FF" stop-opacity="0.8" />
+    </linearGradient>
+
+    <!-- High-quality Soft Glow filter -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
       <feMerge>
         <feMergeNode in="blur" />
         <feMergeNode in="SourceGraphic" />
       </feMerge>
     </filter>
+
+    <!-- Intense Energy Glow filter for the Zap -->
+    <filter id="energyGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blurLarge" />
+      <feGaussianBlur stdDeviation="2.5" result="blurSmall" />
+      <feMerge>
+        <feMergeNode in="blurLarge" />
+        <feMergeNode in="blurSmall" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
   </defs>
 
-  <!-- Deep Obsidian Dark rounded background -->
-  <rect width="128" height="128" rx="32" fill="#09090D" />
+  <!-- Deep Obsidian rounded background -->
+  <rect width="128" height="128" rx="34" fill="#06060A" />
   
-  <!-- Glowing neon border frame -->
-  <rect width="120" height="120" x="4" y="4" rx="28" fill="none" stroke="url(#skrimGradient)" stroke-width="2.5" stroke-opacity="0.3" />
-  
-  <!-- Subtle inner background grid line effect -->
-  <path d="M 4 32 L 124 32 M 4 64 L 124 64 M 4 96 L 124 96 M 32 4 L 32 124 M 64 4 L 64 124 M 96 4 L 96 124" stroke="white" stroke-opacity="0.02" stroke-width="1" />
+  <!-- Subtle inner background glowing background radial gradient -->
+  <circle cx="64" cy="64" r="50" fill="#8A00FF" opacity="0.06" filter="url(#softGlow)" />
+  <circle cx="64" cy="64" r="35" fill="#00F5FF" opacity="0.04" filter="url(#softGlow)" />
 
-  <!-- The "S" and conversation balloon integrated emblem -->
-  <g filter="url(#glow)">
-    <!-- Main emblem path -->
-    <path d="M 36,44 
-             C 36,32 52,26 64,26 
-             C 78,26 88,34 88,44 
-             C 88,54 74,58 70,62 
-             C 66,66 66,74 78,74 
-             C 86,74 92,68 92,68 
-             L 88,80 
-             C 88,80 80,86 64,86 
-             C 48,86 40,76 40,66 
-             C 40,52 58,48 62,44 
-             C 66,40 62,36 54,36 
-             C 46,36 40,42 40,42 
+  <!-- Thin glowing neon border frame -->
+  <rect width="118" height="118" x="5" y="5" rx="30" fill="none" stroke="url(#borderGradient)" stroke-width="2" />
+  
+  <!-- Modern clean background grid lines (tech aesthetic) -->
+  <path d="M 5 32 L 123 32 M 5 64 L 123 64 M 5 96 L 123 96 M 32 5 L 32 123 M 64 5 L 64 123 M 96 5 L 96 123" stroke="white" stroke-opacity="0.015" stroke-width="1" />
+
+  <!-- Composition group with a master shadow -->
+  <g filter="drop-shadow(0px 8px 16px rgba(0,0,0,0.6))">
+    
+    <!-- 1. Upper Crescent Loop of the S (Neon Violet) -->
+    <path d="M 82,46 
+             C 82,34 72,26 60,26 
+             C 46,26 38,34 38,46 
+             C 38,54 44,58 54,60 
+             L 52,50 
+             C 46,48 46,42 48,38 
+             C 50,34 56,32 60,32 
+             C 66,32 72,36 72,46 
+             C 72,50 68,54 62,56 
+             L 66,64 
+             C 74,60 82,54 82,46 Z" 
+          fill="url(#violetGradient)" 
+          filter="url(#softGlow)" />
+
+    <!-- 2. Lower Crescent Loop of the S (Neon Cyan) -->
+    <path d="M 46,82 
+             C 46,94 56,102 68,102 
+             C 82,102 90,94 90,82 
+             C 90,74 84,70 74,68 
+             L 76,78 
+             C 82,80 82,86 80,90 
+             C 78,94 72,96 68,96 
+             C 62,96 56,92 56,82 
+             C 56,78 60,74 66,72 
+             L 62,64 
+             C 54,68 46,74 46,82 Z" 
+          fill="url(#cyanGradient)" 
+          filter="url(#softGlow)" />
+
+    <!-- 3. Dynamic Connecting Zap (Electric Lightning Bolt) -->
+    <path d="M 78,32 
+             L 50,66 
+             L 66,66 
+             L 48,98 
+             L 78,60 
+             L 62,60 
              Z" 
-          fill="url(#skrimGradient)" />
+          fill="url(#zapGradient)" 
+          filter="url(#energyGlow)" />
 
-    <!-- Sleek chat tail element -->
-    <path d="M 40,66 L 30,76 L 46,74 Z" fill="url(#skrimGradient)" />
-
-    <!-- Floating energy dot indicator -->
-    <circle cx="88" cy="34" r="5" fill="#00F0FF" />
+    <!-- 4. Energetic particle sparkles adding premium depth -->
+    <circle cx="82" cy="28" r="3.5" fill="#FFFFFF" opacity="0.9" filter="url(#softGlow)" />
+    <circle cx="44" cy="98" r="2.5" fill="#00F5FF" opacity="0.8" />
   </g>
 </svg>
