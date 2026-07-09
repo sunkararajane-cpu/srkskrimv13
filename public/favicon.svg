@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <defs>
-    <!-- Dark, deep premium cosmic background gradient -->
+    <!-- Deep, premium cosmic background gradient -->
     <radialGradient id="darkBg" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#161722" />
+      <stop offset="0%" stop-color="#181924" />
       <stop offset="60%" stop-color="#0E0F16" />
       <stop offset="100%" stop-color="#050609" />
     </radialGradient>
@@ -14,35 +14,23 @@
       <stop offset="100%" stop-color="#00F5FF" stop-opacity="0.7" />
     </linearGradient>
 
-    <!-- Vibrant 3D Violet Gradient for the Upper S-Hook -->
-    <linearGradient id="violetGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+    <!-- Vibrant 3D Violet-to-Cyan Gradient for the Lightning S -->
+    <linearGradient id="lightningSGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#F3B0FF" />
-      <stop offset="50%" stop-color="#9C27B0" />
-      <stop offset="100%" stop-color="#4A0072" />
+      <stop offset="30%" stop-color="#E040FF" />
+      <stop offset="70%" stop-color="#00F5FF" />
+      <stop offset="100%" stop-color="#0083FF" />
     </linearGradient>
 
-    <!-- Vibrant 3D Cyan Gradient for the Lower S-Hook -->
-    <linearGradient id="cyanGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#E0FFFF" />
-      <stop offset="50%" stop-color="#00E5FF" />
-      <stop offset="100%" stop-color="#004D61" />
-    </linearGradient>
-
-    <!-- White-to-Cyan Electric Lightning Bolt Core Gradient -->
-    <linearGradient id="zapCore" x1="100%" y1="0%" x2="0%" y2="100%">
+    <!-- White-to-Cyan Electric Core Gradient -->
+    <linearGradient id="lightningCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="30%" stop-color="#9FFFFF" />
-      <stop offset="70%" stop-color="#00E5FF" />
-      <stop offset="100%" stop-color="#7B1FA2" />
+      <stop offset="40%" stop-color="#DFFFFF" />
+      <stop offset="80%" stop-color="#00E5FF" />
+      <stop offset="100%" stop-color="#8A00FF" />
     </linearGradient>
 
-    <!-- Glowing outline for the Lightning Bolt -->
-    <linearGradient id="zapBorder" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#00F5FF" />
-      <stop offset="100%" stop-color="#E040FF" />
-    </linearGradient>
-
-    <!-- High-quality volumetric glow filter -->
+    <!-- Volumetric glow filter -->
     <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
       <feGaussianBlur stdDeviation="3.5" result="blur" />
       <feMerge>
@@ -51,12 +39,12 @@
       </feMerge>
     </filter>
 
-    <!-- Soft drop shadow for authentic dimensional depth -->
+    <!-- Soft drop shadow for authentic depth -->
     <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
       <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000000" flood-opacity="0.6" />
     </filter>
 
-    <!-- Delicate background grid pattern -->
+    <!-- Background grid pattern -->
     <pattern id="grid" width="8" height="8" patternUnits="userSpaceOnUse">
       <path d="M 8 0 L 0 0 0 8" fill="none" stroke="#FFFFFF" stroke-opacity="0.015" stroke-width="0.5" />
     </pattern>
@@ -78,67 +66,42 @@
   <!-- 3. Glowing neon outer frame border -->
   <rect width="118" height="118" x="5" y="5" rx="30" fill="none" stroke="url(#borderGlow)" stroke-width="1.5" filter="url(#neonGlow)" />
 
-  <!-- 4. Unified "S" Creative Composition -->
+  <!-- 4. Pure Lightning Bolt "S" Composition -->
   <g filter="url(#shadow)">
     
-    <!-- UPPER VIOLET HOOK (Completely open at the end to form a true 'S') -->
-    <!-- Base 3D layer -->
-    <path d="M 84,36 C 84,24 44,24 44,44 C 44,52 50,58 58,60" 
-          fill="none" 
-          stroke="url(#violetGrad)" 
-          stroke-width="12" 
-          stroke-linecap="round" />
-    <!-- High-contrast glossy core highlight -->
-    <path d="M 81,36 C 81,26 47,26 47,44 C 47,50 51,54 57,56" 
-          fill="none" 
-          stroke="#FFFFFF" 
-          stroke-opacity="0.35" 
-          stroke-width="3" 
-          stroke-linecap="round" />
+    <!-- Outer Glowing Lightning Shape resembling an 'S' -->
+    <path d="M 88,26 
+             L 38,38 
+             L 54,54 
+             L 40,66 
+             L 86,60 
+             L 40,102 
+             L 90,90 
+             L 74,74 
+             L 88,62 
+             L 44,68 
+             Z" 
+          fill="url(#lightningSGrad)" 
+          filter="url(#neonGlow)" />
 
-
-    <!-- LOWER CYAN HOOK (Completely open at the end to form a true 'S') -->
-    <!-- Base 3D layer -->
-    <path d="M 44,92 C 44,104 84,104 84,84 C 84,76 78,70 70,68" 
-          fill="none" 
-          stroke="url(#cyanGrad)" 
-          stroke-width="12" 
-          stroke-linecap="round" />
-    <!-- High-contrast glossy core highlight -->
-    <path d="M 47,92 C 47,102 81,102 81,84 C 81,78 77,74 71,72" 
-          fill="none" 
-          stroke="#FFFFFF" 
-          stroke-opacity="0.35" 
-          stroke-width="3" 
-          stroke-linecap="round" />
+    <!-- Inner White-Hot Core for a futuristic power surge effect -->
+    <path d="M 84,28 
+             L 42,38 
+             L 54,50 
+             L 43,62 
+             L 82,58 
+             L 44,96 
+             L 85,86 
+             L 72,72 
+             L 84,62 
+             L 48,67 
+             Z" 
+          fill="url(#lightningCoreGrad)" />
 
   </g>
 
-  <!-- 5. Electric Central Zap (Lightning Bolt) - Seamlessly joins the hooks -->
-  <g filter="url(#neonGlow)">
-    <!-- Glowing outline -->
-    <path d="M 78,30 
-             L 48,68 
-             L 72,68 
-             L 44,102 
-             L 74,58 
-             L 50,58 
-             Z" 
-          fill="url(#zapBorder)" opacity="0.8" />
-
-    <!-- White-hot core -->
-    <path d="M 76,32 
-             L 49,66 
-             L 70,66 
-             L 46,100 
-             L 72,60 
-             L 52,60 
-             Z" 
-          fill="url(#zapCore)" />
-  </g>
-
-  <!-- 6. Energetic Particle Sparkles -->
-  <circle cx="84" cy="36" r="3.5" fill="#FFFFFF" filter="url(#neonGlow)" />
-  <circle cx="44" cy="92" r="3.5" fill="#FFFFFF" filter="url(#neonGlow)" />
+  <!-- 5. Energetic Particle Sparkles -->
+  <circle cx="88" cy="26" r="3" fill="#FFFFFF" filter="url(#neonGlow)" />
+  <circle cx="40" cy="102" r="3" fill="#00F5FF" filter="url(#neonGlow)" />
   <circle cx="64" cy="64" r="1.5" fill="#FFFFFF" />
 </svg>
