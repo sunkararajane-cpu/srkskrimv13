@@ -1,0 +1,9 @@
+{
+  "name": "SkrimChat",
+  "description": "Secure chat application with real-time WebRTC audio and video calling, WebSocket signaling, and interactive messaging.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
