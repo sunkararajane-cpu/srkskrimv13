@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MoreVertical, MapPin, Link as LinkIcon, Zap, PlaySquare, Bookmark, Repeat, MessageCircle, Eye, Calendar, Sparkles, Bell, BellOff, VolumeX, Volume2, UserX, Flag, Pin, QrCode, Star, Users } from 'lucide-react';
+import { ArrowLeft, MoreVertical, MapPin, Link as LinkIcon, Zap, PlaySquare, Bookmark, Repeat, MessageCircle, Eye, Calendar, Sparkles, Bell, BellOff, VolumeX, Volume2, UserX, Flag, Pin, QrCode, Star, Users, BookOpen } from 'lucide-react';
 import { ReportUserSheet } from '../components/ReportUserSheet';
 import { motion, AnimatePresence } from 'motion/react';
 import { mockUsers, mockPosts } from '../lib/mock/mockData';
@@ -163,6 +163,12 @@ export default function OtherUserProfileScreen() {
             <div className="flex flex-col items-end gap-2">
                <div className="flex gap-2">
                   <FollowButton username={user.username} initialCount={user.followers} variant="profile" />
+                  <button 
+                    onClick={() => navigate(`/books/${user.username.replace('@', '')}`)}
+                    className="px-4 h-10 rounded-xl bg-[#B026FF]/10 border border-[#B026FF]/30 text-[#00F0FF] flex items-center justify-center hover:bg-[#B026FF]/20 transition active:scale-95 gap-2 font-bold text-sm shadow-[0_0_15px_rgba(176,38,255,0.1)]"
+                  >
+                    <BookOpen className="w-4 h-4" /> Books
+                  </button>
                   {(followStatus.following || followStatus.followedBy) && (
                     <button 
                       onClick={handleMessageClick}

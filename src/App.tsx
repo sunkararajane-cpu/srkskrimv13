@@ -48,6 +48,7 @@ import { WorldActivityScreen } from "./screens/WorldActivityScreen";
 import { WorldNotificationSettingsScreen } from "./screens/WorldNotificationSettingsScreen";
 import IdentityScreen from "./screens/IdentityScreen";
 import SignalScreen from "./screens/SignalScreen";
+import BooksScreen from "./screens/BooksScreen";
 import CreatorDashboardScreen from "./screens/CreatorDashboardScreen";
 import PromoteScreen from "./screens/PromoteScreen";
 import MonetizationHubScreen from "./screens/MonetizationHubScreen";
@@ -234,6 +235,8 @@ function AppContent() {
         <Route path="/chat/:id" element={<ChatThreadScreen />} />
         <Route path="/group/info" element={<GroupInfoScreen />} />
         <Route path="/identity" element={<IdentityScreen />} />
+        <Route path="/books" element={<BooksScreen />} />
+        <Route path="/books/:username" element={<BooksScreen />} />
         <Route path="/profile/:username" element={<OtherUserProfileScreen />} />
         <Route path="/hashtag/:tag" element={<HashtagScreen />} />
         <Route path="/signal" element={<SignalScreen />} />

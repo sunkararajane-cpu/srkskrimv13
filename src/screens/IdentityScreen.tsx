@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Edit3, Share, Camera, MapPin, Link as LinkIcon, Plus, X, Zap, Eye, Calendar, Smile, Bookmark, Repeat, User as UserIcon, LogOut, Settings, Bell, Users, BarChart3, DollarSign, Shield, PlaySquare, Heart, MessageCircle, Check, Download, Timer, Archive, Pin, PinOff, QrCode } from 'lucide-react';
+import { Edit3, Share, Camera, MapPin, Link as LinkIcon, Plus, X, Zap, Eye, Calendar, Smile, Bookmark, Repeat, User as UserIcon, LogOut, Settings, Bell, Users, BarChart3, DollarSign, Shield, PlaySquare, Heart, MessageCircle, Check, Download, Timer, Archive, Pin, PinOff, QrCode, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getAllRecords, deleteRecord, saveRecord } from '../lib/services/mediaStorage';
 import { mockPosts, mockUsers, mockReels, mockSparks } from '../lib/mock/mockData';
@@ -1100,6 +1100,7 @@ export default function IdentityScreen() {
         {[
           { icon: BarChart3, label: 'Creator', active: false, path: '/creator' },
           { icon: DollarSign, label: 'Promote', active: false, path: '/promote' },
+          { icon: BookOpen, label: 'Books', active: false, path: '/books' },
         ].map((item, i) => (
           <div 
              key={item.label} 
