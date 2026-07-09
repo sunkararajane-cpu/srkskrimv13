@@ -3113,13 +3113,19 @@ export default function PulseScreen() {
   // event so the new spark appears in the row immediately instead of only after a
   // full re-fetch (tab switch / reload).
   useEffect(() => {
+    let t: NodeJS.Timeout;
     const onReposted = (e: Event) => {
       const repost = (e as CustomEvent).detail;
       if (!repost?.id) return;
-      setSparks(prev => (prev.some(s => s.id === repost.id) ? prev : [repost, ...prev]));
+      t = setTimeout(() => {
+        setSparks(prev => (prev.some(s => s.id === repost.id) ? prev : [repost, ...prev]));
+      }, 0);
     };
     window.addEventListener('skrimchat_spark_reposted', onReposted);
-    return () => window.removeEventListener('skrimchat_spark_reposted', onReposted);
+    return () => {
+      window.removeEventListener('skrimchat_spark_reposted', onReposted);
+      clearTimeout(t);
+    };
   }, []);
 
   // When a Challenge sticker is accepted in SparkViewer, it stashes the
@@ -3182,24 +3188,34 @@ export default function PulseScreen() {
   // localStorage and fires an event, we prepend it here so it shows up
   // instantly at the top of the feed without waiting on a refetch.
   useEffect(() => {
+    let t: NodeJS.Timeout;
     const onFeedRepost = (e: Event) => {
       const repost = (e as CustomEvent).detail;
       if (!repost?.id) return;
-      setPosts(prev => (prev.some(p => p.id === repost.id) ? prev : [repost, ...prev]));
+      t = setTimeout(() => {
+        setPosts(prev => (prev.some(p => p.id === repost.id) ? prev : [repost, ...prev]));
+      }, 0);
     };
     window.addEventListener('skrimchat_post_reposted', onFeedRepost);
-    return () => window.removeEventListener('skrimchat_post_reposted', onFeedRepost);
+    return () => {
+      window.removeEventListener('skrimchat_post_reposted', onFeedRepost);
+      clearTimeout(t);
+    };
   }, []);
 
   useEffect(() => {
+    let t: NodeJS.Timeout;
     const handleUpdated = () => {
-      doRefreshFetch();
+      t = setTimeout(() => {
+        doRefreshFetch();
+      }, 0);
     };
     window.addEventListener('skrimchat_custom_posts_updated', handleUpdated);
     window.addEventListener('skrimchat_post_deleted', handleUpdated);
     return () => {
       window.removeEventListener('skrimchat_custom_posts_updated', handleUpdated);
       window.removeEventListener('skrimchat_post_deleted', handleUpdated);
+      clearTimeout(t);
     };
   }, []);
 

@@ -68,9 +68,15 @@ export function DashboardSidebar() {
     return stored ? parseInt(stored, 10) : 8; // default 8 until SignalScreen loads
   });
   useEffect(() => {
-    const handler = (e: any) => setSignalUnread(e.detail || 0);
+    let t: NodeJS.Timeout;
+    const handler = (e: any) => {
+      t = setTimeout(() => setSignalUnread(e.detail || 0), 0);
+    };
     window.addEventListener('skrimchat_signal_badge', handler);
-    return () => window.removeEventListener('skrimchat_signal_badge', handler);
+    return () => {
+      window.removeEventListener('skrimchat_signal_badge', handler);
+      clearTimeout(t);
+    };
   }, []);
 
   // Stats
@@ -338,9 +344,18 @@ export function DashboardSheets() {
   const [activeSheet, setActiveSheet] = useState<string | null>(null);
   
   useEffect(() => {
-    const handleStat = (e: any) => setActiveSheet(e.detail);
-    const handleMissions = () => setActiveSheet('missions');
-    const handleChallenge = () => setActiveSheet('challenge');
+    let t1: NodeJS.Timeout;
+    let t2: NodeJS.Timeout;
+    let t3: NodeJS.Timeout;
+    const handleStat = (e: any) => {
+      t1 = setTimeout(() => setActiveSheet(e.detail), 0);
+    };
+    const handleMissions = () => {
+      t2 = setTimeout(() => setActiveSheet('missions'), 0);
+    };
+    const handleChallenge = () => {
+      t3 = setTimeout(() => setActiveSheet('challenge'), 0);
+    };
     
     window.addEventListener('skrimchat_show_stat', handleStat);
     window.addEventListener('skrimchat_show_missions', handleMissions);
@@ -350,6 +365,9 @@ export function DashboardSheets() {
       window.removeEventListener('skrimchat_show_stat', handleStat);
       window.removeEventListener('skrimchat_show_missions', handleMissions);
       window.removeEventListener('skrimchat_show_challenge', handleChallenge);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, []);
 

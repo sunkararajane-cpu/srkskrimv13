@@ -71,11 +71,17 @@ export function FollowButton({ username, initialCount = 0, variant = 'default', 
   useEffect(() => {
     setFollowing(isFollowing(username));
     
+    let t: NodeJS.Timeout;
     const handleUpdate = () => {
-      setFollowing(isFollowing(username));
+      t = setTimeout(() => {
+        setFollowing(isFollowing(username));
+      }, 0);
     };
     window.addEventListener('skrimchat_social_graph_updated', handleUpdate);
-    return () => window.removeEventListener('skrimchat_social_graph_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('skrimchat_social_graph_updated', handleUpdate);
+      clearTimeout(t);
+    };
   }, [username]);
 
   const handleToggle = (e: React.MouseEvent) => {
