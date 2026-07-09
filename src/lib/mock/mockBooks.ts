@@ -91,6 +91,82 @@ export function saveStoredBooks(books: Book[]): void {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// INDEXEDDB BINARY STORAGE MANAGER FOR LARGE PDF PUBLICATIONS
+// ─────────────────────────────────────────────────────────────────────────────
+const DB_NAME = "SkrimChatLibraryDB";
+const STORE_NAME = "pdf_blobs";
+
+function openDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined" || !window.indexedDB) {
+      reject(new Error("IndexedDB is not supported in this environment"));
+      return;
+    }
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function storePDFBlob(id: string, blob: Blob): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.put(blob, id);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function getPDFBlob(id: string): Promise<Blob | null> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readonly");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(id);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function deletePDFBlob(id: string): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.delete(id);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function addBookWithBlob(bookMeta: Omit<Book, 'id' | 'uploadedAt' | 'dataUrl'>, fileBlob: Blob): Promise<Book> {
+  const id = 'b_' + Math.random().toString(36).substr(2, 9);
+  
+  // Store Blob in IndexedDB
+  await storePDFBlob(id, fileBlob);
+  
+  // Store metadata in localStorage (with no massive base64 payload!)
+  const books = getStoredBooks();
+  const newBook: Book = {
+    ...bookMeta,
+    id,
+    uploadedAt: Date.now(),
+  };
+  books.unshift(newBook);
+  saveStoredBooks(books);
+  
+  return newBook;
+}
+
 export function addBook(book: Omit<Book, 'id' | 'uploadedAt'>): Book {
   const books = getStoredBooks();
   const newBook: Book = {
@@ -108,6 +184,8 @@ export function deleteBook(id: string): boolean {
   const filtered = books.filter(b => b.id !== id);
   if (filtered.length !== books.length) {
     saveStoredBooks(filtered);
+    // Asynchronously delete the PDF blob from IndexedDB (fire-and-forget)
+    deletePDFBlob(id).catch(err => console.error("Failed to delete PDF blob from IndexedDB:", err));
     return true;
   }
   return false;

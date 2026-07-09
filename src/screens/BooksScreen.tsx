@@ -26,6 +26,8 @@ import { useCurrentUser } from "../hooks/useCurrentUser";
 import {
   getStoredBooks,
   addBook,
+  addBookWithBlob,
+  getPDFBlob,
   deleteBook,
   Book as BookType
 } from "../lib/mock/mockBooks";
@@ -139,36 +141,33 @@ export default function BooksScreen() {
         }
         if (prev >= 100) {
           clearInterval(interval);
-          // Save file to store once processed
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            if (event.target?.result) {
-              const base64Data = event.target.result as string;
-              
-              // Random premium book cover gradient
-              const gradients = [
-                "from-emerald-950 via-teal-950 to-black text-emerald-100 border-emerald-900/30",
-                "from-purple-950 via-violet-950 to-black text-purple-100 border-violet-900/30",
-                "from-rose-950 via-red-950 to-black text-rose-100 border-rose-900/30",
-                "from-sky-950 via-blue-950 to-black text-sky-100 border-blue-900/30",
-                "from-amber-950 via-yellow-950 to-black text-amber-100 border-amber-900/30"
-              ];
-              const randomCover = gradients[Math.floor(Math.random() * gradients.length)];
+          
+          // Random premium book cover gradient
+          const gradients = [
+            "from-emerald-950 via-teal-950 to-black text-emerald-100 border-emerald-900/30",
+            "from-purple-950 via-violet-950 to-black text-purple-100 border-violet-900/30",
+            "from-rose-950 via-red-950 to-black text-rose-100 border-rose-900/30",
+            "from-sky-950 via-blue-950 to-black text-sky-100 border-blue-900/30",
+            "from-amber-950 via-yellow-950 to-black text-amber-100 border-amber-900/30"
+          ];
+          const randomCover = gradients[Math.floor(Math.random() * gradients.length)];
 
-              addBook({
-                ownerUsername: currentUser?.username || "@anonymous",
-                ownerDisplayName: currentUser?.fullName || currentUser?.displayName || "Anonymous Creator",
-                title: file.name.replace(".pdf", "").replace(/[-_]/g, " "),
-                author: currentUser?.fullName || currentUser?.displayName || "You",
-                fileName: file.name,
-                sizeBytes: file.size,
-                dataUrl: base64Data,
-                description: "User uploaded publication in high-fidelity secure sandbox.",
-                coverColor: randomCover
-              });
-            }
-          };
-          reader.readAsDataURL(file);
+          addBookWithBlob({
+            ownerUsername: currentUser?.username || "@anonymous",
+            ownerDisplayName: currentUser?.fullName || currentUser?.displayName || "Anonymous Creator",
+            title: file.name.replace(".pdf", "").replace(/[-_]/g, " "),
+            author: currentUser?.fullName || currentUser?.displayName || "You",
+            fileName: file.name,
+            sizeBytes: file.size,
+            description: "User uploaded publication in high-fidelity secure sandbox.",
+            coverColor: randomCover
+          }, file).then(() => {
+            loadBooks(); // reload catalog state
+          }).catch((err) => {
+            console.error("IndexedDB error:", err);
+            setUploadError("Secure sandboxed write error. Please try again.");
+          });
+
           return null; // hide progress
         }
         return prev + 10;
@@ -185,13 +184,24 @@ export default function BooksScreen() {
   };
 
   // Open protected reader
-  const openReader = (book: BookType) => {
+  const openReader = async (book: BookType) => {
     setActiveBook(book);
     setReaderPage(0);
+    setPdfBlobUrl(null);
     
-    // For local base64 PDFs, we convert to a blob URL to prevent direct download
-    if (book.dataUrl) {
-      try {
+    if (book.content) {
+      // It's a text-based epub/chapter book
+      return;
+    }
+
+    // Try loading the PDF blob from IndexedDB, with graceful fallback to legacy base64 if present
+    try {
+      const blob = await getPDFBlob(book.id);
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        setPdfBlobUrl(url);
+      } else if (book.dataUrl) {
+        // Fallback for base64 from legacy storage
         const byteString = atob(book.dataUrl.split(",")[1]);
         const mimeString = book.dataUrl.split(",")[0].split(":")[1].split(";")[0];
         const ab = new ArrayBuffer(byteString.length);
@@ -199,14 +209,17 @@ export default function BooksScreen() {
         for (let i = 0; i < byteString.length; i++) {
           ia[i] = byteString.charCodeAt(i);
         }
-        const blob = new Blob([ab], { type: mimeString });
-        const url = URL.createObjectURL(blob);
+        const fallbackBlob = new Blob([ab], { type: mimeString });
+        const url = URL.createObjectURL(fallbackBlob);
         setPdfBlobUrl(url);
-      } catch (e) {
+      } else {
+        console.warn("No local binary stored for book:", book.id);
+      }
+    } catch (e) {
+      console.error("Error loading PDF blob:", e);
+      if (book.dataUrl) {
         setPdfBlobUrl(book.dataUrl);
       }
-    } else {
-      setPdfBlobUrl(null);
     }
   };
 
@@ -495,8 +508,8 @@ export default function BooksScreen() {
             {/* Immersive Protected Container */}
             <div className="flex-1 w-full flex items-center justify-center relative overflow-hidden">
               
-              {/* If it's a PDF upload, we use secure embed with download prevention overlay */}
-              {activeBook.dataUrl ? (
+              {/* If it has no content, it is an uploaded PDF publication */}
+              {!activeBook.content ? (
                 <div className="w-full h-full flex flex-col items-center justify-center relative">
                   {/* Glassmorphic Safety Overlay covering the native PDF controls top bar area */}
                   <div className="absolute top-0 left-0 right-0 h-14 bg-black/60 backdrop-blur-md flex items-center justify-center z-30 px-6 border-b border-white/10 select-none pointer-events-none">
@@ -507,7 +520,7 @@ export default function BooksScreen() {
                   </div>
 
                   {/* PDF Viewer */}
-                  {pdfBlobUrl && (
+                  {pdfBlobUrl ? (
                     <object
                       data={`${pdfBlobUrl}#toolbar=0&navpanes=0&scrollbar=0`}
                       type="application/pdf"
@@ -519,6 +532,28 @@ export default function BooksScreen() {
                         className="w-full h-full"
                       />
                     </object>
+                  ) : (
+                    <div className="text-center p-8 flex flex-col items-center justify-center gap-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B026FF]"></div>
+                      <p className="text-xs text-gray-400">Loading secure digital edition...</p>
+                    </div>
+                  )}
+
+                  {/* If in an iframe/sandbox and the browser blocks embeds, give them a seamless direct tab reader fallback */}
+                  {pdfBlobUrl && (
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 bg-[#0A0A0F]/90 border border-white/10 px-5 py-4 rounded-2xl backdrop-blur-md shadow-2xl text-center max-w-sm">
+                      <p className="text-[11px] text-gray-400 font-medium leading-normal">
+                        Iframe sandbox security may restrict inline PDF plug-ins on some browsers.
+                      </p>
+                      <a
+                        href={pdfBlobUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-gradient-to-r from-[#B026FF] to-[#00F0FF] rounded-xl text-white font-bold text-xs flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md"
+                      >
+                        <BookOpen className="w-3.5 h-3.5" /> Launch High-Fidelity Tab Reader
+                      </a>
+                    </div>
                   )}
                 </div>
               ) : (
