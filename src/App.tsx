@@ -66,6 +66,7 @@ import HashtagScreen from "./screens/HashtagScreen";
 import ChatThreadScreen from "./screens/ChatThreadScreen";
 import GroupInfoScreen from "./screens/GroupInfoScreen";
 import { BottomTabs } from "./components/BottomTabs";
+import TermsAgreementModal from "./components/TermsAgreementModal";
 import {
   DashboardSidebar,
   MobileStatsDashboard,
@@ -342,6 +343,7 @@ export default function App() {
 
   return (
     <Router>
+      <TermsAgreementModal />
       {!isAuthenticated ? (
         <div
           style={{

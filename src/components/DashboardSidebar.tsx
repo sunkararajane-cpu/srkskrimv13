@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Zap, Crown, Flame, Target, Home, Compass, PlaySquare, MessageCircle, User, Users, Bell, Lock, Settings, LogOut, Orbit, CalendarHeart } from 'lucide-react';
+import { Zap, Crown, Flame, Target, Home, Compass, PlaySquare, MessageCircle, User, Users, Bell, Lock, Settings, LogOut, Orbit, CalendarHeart, Shield } from 'lucide-react';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useTrackingStats, useAchievements, useDailyMissions } from '../lib/mock/achievementEngine';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -271,6 +271,16 @@ export function DashboardSidebar() {
            <SidebarNavItem icon={Bell} label="Signal" path="/signal" badge={signalUnread > 0 ? signalUnread : undefined} delay={0.35} />
            <SidebarNavItem icon={CalendarHeart} label="Calendar" path="/calendar" chip="NEW" delay={0.37} />
            <SidebarNavItem icon={Lock} label="Veil" path="/veil" isVeil={true} chip="E2E" delay={0.4} />
+            
+            <div className="h-[1px] w-full bg-white/5 my-2" />
+
+            <button
+              onClick={() => window.dispatchEvent(new Event('skrimchat_show_legal'))}
+              className="w-full flex items-center gap-3 px-3 h-[44px] rounded-xl text-[#888] hover:text-white hover:bg-[#B026FF]/[0.08] hover:border-l-[2px] hover:border-[#B026FF]/50 border-l-[0px] border-transparent transition-all text-left text-[14px] cursor-pointer"
+            >
+              <Shield className="w-5 h-5 text-[#666]" />
+              <span>Terms & Privacy</span>
+            </button>
          </div>
        </div>
     </div>

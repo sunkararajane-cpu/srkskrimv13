@@ -665,6 +665,16 @@ export default function AuthScreen() {
                     {loading ? 'Creating...' : 'Sign Up'}
                   </NeonButton>
                   
+                  <div className="text-[11px] text-gray-500 text-center px-2 mt-3 leading-relaxed">
+                    By registering, you represent and agree to SkrimChat's global multi-jurisdictional{" "}
+                    <span
+                      onClick={() => window.dispatchEvent(new Event('skrimchat_show_legal'))}
+                      className="text-[#00F0FF] hover:text-[#B026FF] underline cursor-pointer transition-colors font-semibold"
+                    >
+                      Terms of Service, Privacy Consent &amp; Digital Publishing Copyright Protocols
+                    </span>.
+                  </div>
+                  
                   <div className="flex items-center gap-4 my-8">
                     <div className="h-px bg-gray-800 flex-1" />
                     <span className="text-sm text-gray-500 font-medium">OR</span>
