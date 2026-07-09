@@ -70,10 +70,43 @@ export default function BooksScreen() {
   const [readerMode, setReaderMode] = useState<"text" | "pdf">("text");
   const [deleteTarget, setDeleteTarget] = useState<BookType | null>(null);
 
+  // Scroll and overall progress state
+  const [scrollProgress, setScrollProgress] = useState<number>(0);
+  const readerScrollContainerRef = useRef<HTMLDivElement>(null);
+
   // Bookmarks state
   const [activeBookmarks, setActiveBookmarks] = useState<Bookmark[]>([]);
   const [showBookmarksSidebar, setShowBookmarksSidebar] = useState(false);
   const [newBookmarkLabel, setNewBookmarkLabel] = useState("");
+
+  // Calculate progress based on scroll position within the current page
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!activeBook) return;
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const totalScrollable = scrollHeight - clientHeight;
+    const scrollPercent = totalScrollable > 0 ? scrollTop / totalScrollable : 0;
+
+    const totalPages = activeBook.content?.length || 1;
+    const pageContribution = readerPage / totalPages;
+    const scrollContribution = (scrollPercent * 1) / totalPages;
+    const totalProgress = Math.min(100, Math.round((pageContribution + scrollContribution) * 100));
+
+    setScrollProgress(totalProgress);
+  };
+
+  // Reset scroll and initialize progress on page or book change
+  useEffect(() => {
+    if (readerScrollContainerRef.current) {
+      readerScrollContainerRef.current.scrollTop = 0;
+    }
+    if (activeBook) {
+      const totalPages = activeBook.content?.length || 1;
+      const pageContribution = readerPage / totalPages;
+      setScrollProgress(Math.round(pageContribution * 100));
+    } else {
+      setScrollProgress(0);
+    }
+  }, [readerPage, activeBook]);
 
   // Load books
   const loadBooks = () => {
@@ -567,8 +600,15 @@ export default function BooksScreen() {
                   <h2 className="text-sm font-bold text-white leading-tight">
                     {activeBook.title}
                   </h2>
-                  <p className="text-xs text-[#00F0FF] font-medium tracking-wide flex items-center gap-1 mt-0.5">
-                    <Lock className="w-3 h-3" /> Protected Sandbox Mode — Downloads Blocked
+                  <p className="text-xs text-[#00F0FF] font-medium tracking-wide flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <Lock className="w-3 h-3" />
+                    <span>Protected Sandbox Mode</span>
+                    <span className="text-gray-600">•</span>
+                    <span className="text-gray-400">Downloads Blocked</span>
+                    <span className="text-gray-600">•</span>
+                    <span className="bg-gradient-to-r from-[#B026FF] to-[#00F0FF] text-transparent bg-clip-text font-mono font-bold text-[11px] px-1.5 py-0.5 rounded border border-[#B026FF]/30">
+                      {scrollProgress}% Read
+                    </span>
                   </p>
                 </div>
               </div>
@@ -634,6 +674,16 @@ export default function BooksScreen() {
               </div>
             </div>
 
+            {/* Reading Progress Bar */}
+            <div className="w-full h-1 bg-white/5 relative z-40 overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${scrollProgress}%` }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#B026FF] to-[#00F0FF]"
+              />
+            </div>
+
             {/* Immersive Protected Container */}
             <div className="flex-1 w-full flex relative overflow-hidden">
               
@@ -685,6 +735,8 @@ export default function BooksScreen() {
                 ) : (
                   /* Beautifully formatted Epub/Simulated chapter book reader */
                   <div
+                    ref={readerScrollContainerRef}
+                    onScroll={handleScroll}
                     className={`w-full h-full flex flex-col justify-between p-8 transition-colors duration-300 overflow-y-auto ${
                       readerTheme === "sepia"
                         ? "bg-[#FAF4E8] text-[#433422]"
