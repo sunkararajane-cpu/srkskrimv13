@@ -52,6 +52,7 @@ export default function BooksScreen() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadingStatus, setUploadingStatus] = useState<string>("Uploading publication...");
   
   // Reader state
   const [activeBook, setActiveBook] = useState<BookType | null>(null);
@@ -59,6 +60,7 @@ export default function BooksScreen() {
   const [readerFontSize, setReaderFontSize] = useState<number>(18);
   const [readerPage, setReaderPage] = useState<number>(0);
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [readerMode, setReaderMode] = useState<"text" | "pdf">("text");
 
   // Load books
   const loadBooks = () => {
@@ -116,9 +118,62 @@ export default function BooksScreen() {
     }
   };
 
+  // Helper to dynamically load PDF.js and extract text page-by-page
+  const extractTextFromPDF = async (file: File): Promise<string[]> => {
+    if (typeof window === "undefined") return [];
+    
+    // 1. Ensure PDF.js library is loaded
+    if (!(window as any).pdfjsLib) {
+      await new Promise<void>((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+        script.onload = () => {
+          (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+          resolve();
+        };
+        script.onerror = () => reject(new Error("Failed to load PDF processing engine"));
+        document.head.appendChild(script);
+      });
+    }
+
+    // 2. Load the document
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = (window as any).pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    const numPages = pdf.numPages;
+    const pagesText: string[] = [];
+
+    // 3. Loop through pages and extract text
+    for (let i = 1; i <= numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const items = textContent.items as any[];
+      
+      let lastY: number | null = null;
+      let pageText = "";
+      
+      for (const item of items) {
+        if (lastY !== null && Math.abs(item.transform[5] - lastY) > 12) {
+          pageText += "\n";
+        }
+        pageText += item.str + " ";
+        lastY = item.transform[5];
+      }
+
+      if (!pageText.trim()) {
+        pageText = items.map(item => item.str).join(" ");
+      }
+
+      pagesText.push(pageText.trim() || `[Blank Page ${i}]`);
+    }
+
+    return pagesText;
+  };
+
   // Check file type and size before uploading
   const processFile = (file: File) => {
     setUploadError(null);
+    setUploadingStatus("Uploading publication...");
     if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
       setUploadError("Only standard PDF publications are allowed.");
       return;
@@ -141,6 +196,7 @@ export default function BooksScreen() {
         }
         if (prev >= 100) {
           clearInterval(interval);
+          setUploadingStatus("✨ Synthesizing publication pages & reflowing layout...");
           
           // Random premium book cover gradient
           const gradients = [
@@ -152,23 +208,42 @@ export default function BooksScreen() {
           ];
           const randomCover = gradients[Math.floor(Math.random() * gradients.length)];
 
-          addBookWithBlob({
-            ownerUsername: currentUser?.username || "@anonymous",
-            ownerDisplayName: currentUser?.fullName || currentUser?.displayName || "Anonymous Creator",
-            title: file.name.replace(".pdf", "").replace(/[-_]/g, " "),
-            author: currentUser?.fullName || currentUser?.displayName || "You",
-            fileName: file.name,
-            sizeBytes: file.size,
-            description: "User uploaded publication in high-fidelity secure sandbox.",
-            coverColor: randomCover
-          }, file).then(() => {
+          // Extract text page-by-page first to save in the metadata
+          extractTextFromPDF(file).then((pagesText) => {
+            return addBookWithBlob({
+              ownerUsername: currentUser?.username || "@anonymous",
+              ownerDisplayName: currentUser?.fullName || currentUser?.displayName || "Anonymous Creator",
+              title: file.name.replace(".pdf", "").replace(/[-_]/g, " "),
+              author: currentUser?.fullName || currentUser?.displayName || "You",
+              fileName: file.name,
+              sizeBytes: file.size,
+              description: "User uploaded publication in high-fidelity secure sandbox.",
+              coverColor: randomCover,
+              content: pagesText
+            }, file);
+          }).catch((err) => {
+            console.warn("Could not extract PDF text, saving metadata without content", err);
+            // Fallback: save without text content
+            return addBookWithBlob({
+              ownerUsername: currentUser?.username || "@anonymous",
+              ownerDisplayName: currentUser?.fullName || currentUser?.displayName || "Anonymous Creator",
+              title: file.name.replace(".pdf", "").replace(/[-_]/g, " "),
+              author: currentUser?.fullName || currentUser?.displayName || "You",
+              fileName: file.name,
+              sizeBytes: file.size,
+              description: "User uploaded publication in high-fidelity secure sandbox.",
+              coverColor: randomCover
+            }, file);
+          }).then(() => {
             loadBooks(); // reload catalog state
+            setUploadProgress(null);
           }).catch((err) => {
             console.error("IndexedDB error:", err);
             setUploadError("Secure sandboxed write error. Please try again.");
+            setUploadProgress(null);
           });
 
-          return null; // hide progress
+          return 100; // Keep showing progress while processing, will be reset to null when done
         }
         return prev + 10;
       });
@@ -188,13 +263,9 @@ export default function BooksScreen() {
     setActiveBook(book);
     setReaderPage(0);
     setPdfBlobUrl(null);
+    setReaderMode(book.content ? "text" : "pdf");
     
-    if (book.content) {
-      // It's a text-based epub/chapter book
-      return;
-    }
-
-    // Try loading the PDF blob from IndexedDB, with graceful fallback to legacy base64 if present
+    // Always attempt to load the PDF blob if it is stored, so hybrid view works
     try {
       const blob = await getPDFBlob(book.id);
       if (blob) {
@@ -291,7 +362,7 @@ export default function BooksScreen() {
             {uploadProgress !== null && (
               <div className="w-full max-w-xs mt-4 space-y-1.5 animate-in fade-in duration-200">
                 <div className="flex justify-between text-[11px] font-bold text-gray-400">
-                  <span>Uploading publication...</span>
+                  <span>{uploadingStatus}</span>
                   <span className="text-[#B026FF]">{uploadProgress}%</span>
                 </div>
                 <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -459,8 +530,34 @@ export default function BooksScreen() {
 
               {/* Reader Adjustments */}
               <div className="flex items-center gap-4">
+                {/* Toggle between E-Reader & Original PDF if both are available */}
+                {activeBook.content && (pdfBlobUrl || activeBook.dataUrl) && (
+                  <div className="flex items-center bg-white/5 rounded-xl p-0.5 border border-white/5">
+                    <button
+                      onClick={() => setReaderMode("text")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        readerMode === "text"
+                          ? "bg-gradient-to-r from-[#B026FF] to-[#00F0FF] text-white"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      ✨ Reflowable E-Reader
+                    </button>
+                    <button
+                      onClick={() => setReaderMode("pdf")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        readerMode === "pdf"
+                          ? "bg-gradient-to-r from-[#B026FF] to-[#00F0FF] text-white"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      📄 Original PDF File
+                    </button>
+                  </div>
+                )}
+
                 {/* Theme select (Only for built-in text reading) */}
-                {activeBook.content && (
+                {readerMode === "text" && activeBook.content && (
                   <div className="flex items-center bg-white/5 rounded-xl p-0.5 border border-white/5">
                     {(["sepia", "charcoal", "light"] as const).map((t) => (
                       <button
@@ -479,7 +576,7 @@ export default function BooksScreen() {
                 )}
 
                 {/* Font sizing (Only for built-in text reading) */}
-                {activeBook.content && (
+                {readerMode === "text" && activeBook.content && (
                   <div className="flex items-center bg-white/5 rounded-xl border border-white/5 divide-x divide-white/5">
                     <button
                       onClick={() => setReaderFontSize((f) => Math.max(12, f - 2))}
@@ -508,8 +605,8 @@ export default function BooksScreen() {
             {/* Immersive Protected Container */}
             <div className="flex-1 w-full flex items-center justify-center relative overflow-hidden">
               
-              {/* If it has no content, it is an uploaded PDF publication */}
-              {!activeBook.content ? (
+              {/* If it is in PDF mode, render the PDF viewer */}
+              {readerMode === "pdf" ? (
                 <div className="w-full h-full flex flex-col items-center justify-center relative">
                   {/* Glassmorphic Safety Overlay covering the native PDF controls top bar area */}
                   <div className="absolute top-0 left-0 right-0 h-14 bg-black/60 backdrop-blur-md flex items-center justify-center z-30 px-6 border-b border-white/10 select-none pointer-events-none">
