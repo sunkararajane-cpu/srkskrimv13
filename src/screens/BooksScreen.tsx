@@ -20,7 +20,9 @@ import {
   Lock,
   Eye,
   Sparkles,
-  FileText
+  FileText,
+  Bookmark as BookmarkIcon,
+  Plus
 } from "lucide-react";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import {
@@ -29,7 +31,11 @@ import {
   addBookWithBlob,
   getPDFBlob,
   deleteBook,
-  Book as BookType
+  Book as BookType,
+  Bookmark,
+  getBookmarks,
+  addBookmark,
+  deleteBookmark
 } from "../lib/mock/mockBooks";
 
 export default function BooksScreen() {
@@ -64,9 +70,23 @@ export default function BooksScreen() {
   const [readerMode, setReaderMode] = useState<"text" | "pdf">("text");
   const [deleteTarget, setDeleteTarget] = useState<BookType | null>(null);
 
+  // Bookmarks state
+  const [activeBookmarks, setActiveBookmarks] = useState<Bookmark[]>([]);
+  const [showBookmarksSidebar, setShowBookmarksSidebar] = useState(false);
+  const [newBookmarkLabel, setNewBookmarkLabel] = useState("");
+
   // Load books
   const loadBooks = () => {
     setBooks(getStoredBooks());
+  };
+
+  // Load bookmarks for the active book
+  const loadActiveBookmarks = () => {
+    if (activeBook) {
+      setActiveBookmarks(getBookmarks(activeBook.id));
+    } else {
+      setActiveBookmarks([]);
+    }
   };
 
   useEffect(() => {
@@ -75,6 +95,13 @@ export default function BooksScreen() {
     window.addEventListener("skrimchat_books_updated", handleUpdate);
     return () => window.removeEventListener("skrimchat_books_updated", handleUpdate);
   }, []);
+
+  useEffect(() => {
+    loadActiveBookmarks();
+    // Reset new bookmark label input and sidebar state when switching books
+    setNewBookmarkLabel("");
+    setShowBookmarksSidebar(false);
+  }, [activeBook]);
 
   // Filter books based on search query and ownership
   const filteredBooks = books.filter((book) => {
@@ -585,6 +612,19 @@ export default function BooksScreen() {
                   </div>
                 )}
 
+                {/* Bookmarks Toggle */}
+                <button
+                  onClick={() => setShowBookmarksSidebar((prev) => !prev)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                    showBookmarksSidebar
+                      ? "bg-gradient-to-r from-[#B026FF] to-[#00F0FF] text-white border-transparent shadow-lg shadow-[#B026FF]/20"
+                      : "bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  <BookmarkIcon className={`w-3.5 h-3.5 ${showBookmarksSidebar ? "fill-white" : ""}`} />
+                  <span>Bookmarks ({activeBookmarks.length})</span>
+                </button>
+
                 <button
                   onClick={closeReader}
                   className="w-10 h-10 rounded-full bg-red-500/15 border border-red-500/30 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-95"
@@ -595,102 +635,238 @@ export default function BooksScreen() {
             </div>
 
             {/* Immersive Protected Container */}
-            <div className="flex-1 w-full flex items-center justify-center relative overflow-hidden">
+            <div className="flex-1 w-full flex relative overflow-hidden">
               
-              {/* If it is in PDF mode, render the PDF viewer */}
-              {readerMode === "pdf" ? (
-                <div className="w-full h-full flex flex-col items-center justify-center relative">
-                  {/* Glassmorphic Safety Overlay covering the native PDF controls top bar area */}
-                  <div className="absolute top-0 left-0 right-0 h-14 bg-black/60 backdrop-blur-md flex items-center justify-center z-30 px-6 border-b border-white/10 select-none pointer-events-none">
-                    <div className="flex items-center gap-2 text-xs font-bold text-white tracking-wider uppercase">
-                      <Lock className="w-4 h-4 text-[#00F0FF] animate-pulse" />
-                      <span>🔒 SECURE SANDBOX READING CANVAS • PREVENT DIRECT DOWNLOADING</span>
+              {/* Main Reader Viewport */}
+              <div className="flex-1 h-full flex flex-col justify-between relative overflow-hidden bg-black">
+                {/* If it is in PDF mode, render the PDF viewer */}
+                {readerMode === "pdf" ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center relative">
+                    {/* Glassmorphic Safety Overlay covering the native PDF controls top bar area */}
+                    <div className="absolute top-0 left-0 right-0 h-14 bg-black/60 backdrop-blur-md flex items-center justify-center z-30 px-6 border-b border-white/10 select-none pointer-events-none">
+                      <div className="flex items-center gap-2 text-xs font-bold text-white tracking-wider uppercase">
+                        <Lock className="w-4 h-4 text-[#00F0FF] animate-pulse" />
+                        <span>🔒 SECURE SANDBOX READING CANVAS • PREVENT DIRECT DOWNLOADING</span>
+                      </div>
                     </div>
+
+                    {/* PDF Viewer */}
+                    {pdfBlobUrl ? (
+                      <iframe
+                        src={`${pdfBlobUrl}#page=${readerPage + 1}&toolbar=0&navpanes=0&scrollbar=0`}
+                        className="w-full h-full bg-[#121214] border-none"
+                        title={activeBook.title}
+                        id="secure-pdf-iframe"
+                      />
+                    ) : (
+                      <div className="text-center p-8 flex flex-col items-center justify-center gap-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B026FF]"></div>
+                        <p className="text-xs text-gray-400">Loading secure digital edition...</p>
+                      </div>
+                    )}
+
+                    {/* If in an iframe/sandbox and the browser blocks embeds, give them a seamless direct tab reader fallback */}
+                    {pdfBlobUrl && (
+                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 bg-[#0A0A0F]/90 border border-white/10 px-5 py-4 rounded-2xl backdrop-blur-md shadow-2xl text-center max-w-sm">
+                        <p className="text-[11px] text-gray-400 font-medium leading-normal">
+                          Iframe sandbox security may restrict inline PDF plug-ins on some browsers.
+                        </p>
+                        <a
+                          href={pdfBlobUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-gradient-to-r from-[#B026FF] to-[#00F0FF] rounded-xl text-white font-bold text-xs flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md"
+                        >
+                          <BookOpen className="w-3.5 h-3.5" /> Launch High-Fidelity Tab Reader
+                        </a>
+                      </div>
+                    )}
                   </div>
-
-                  {/* PDF Viewer */}
-                  {pdfBlobUrl ? (
-                    <iframe
-                      src={`${pdfBlobUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                      className="w-full h-full bg-[#121214] border-none"
-                      title={activeBook.title}
-                      id="secure-pdf-iframe"
-                    />
-                  ) : (
-                    <div className="text-center p-8 flex flex-col items-center justify-center gap-4">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B026FF]"></div>
-                      <p className="text-xs text-gray-400">Loading secure digital edition...</p>
-                    </div>
-                  )}
-
-                  {/* If in an iframe/sandbox and the browser blocks embeds, give them a seamless direct tab reader fallback */}
-                  {pdfBlobUrl && (
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 bg-[#0A0A0F]/90 border border-white/10 px-5 py-4 rounded-2xl backdrop-blur-md shadow-2xl text-center max-w-sm">
-                      <p className="text-[11px] text-gray-400 font-medium leading-normal">
-                        Iframe sandbox security may restrict inline PDF plug-ins on some browsers.
-                      </p>
-                      <a
-                        href={pdfBlobUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 bg-gradient-to-r from-[#B026FF] to-[#00F0FF] rounded-xl text-white font-bold text-xs flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md"
+                ) : (
+                  /* Beautifully formatted Epub/Simulated chapter book reader */
+                  <div
+                    className={`w-full h-full flex flex-col justify-between p-8 transition-colors duration-300 overflow-y-auto ${
+                      readerTheme === "sepia"
+                        ? "bg-[#FAF4E8] text-[#433422]"
+                        : readerTheme === "charcoal"
+                        ? "bg-[#141416] text-[#E4E4E7]"
+                        : "bg-[#FFFFFF] text-[#1F2937]"
+                    }`}
+                  >
+                    <div className="max-w-2xl mx-auto flex-1 flex flex-col justify-center py-6">
+                      {/* Chapter Page Content */}
+                      <div
+                        className="font-serif leading-relaxed space-y-6 select-text whitespace-pre-line"
+                        style={{ fontSize: `${readerFontSize}px` }}
                       >
-                        <BookOpen className="w-3.5 h-3.5" /> Launch High-Fidelity Tab Reader
-                      </a>
+                        {activeBook.content && activeBook.content[readerPage]}
+                      </div>
                     </div>
-                  )}
-                </div>
-              ) : (
-                /* Beautifully formatted Epub/Simulated chapter book reader */
-                <div
-                  className={`w-full h-full flex flex-col justify-between p-8 transition-colors duration-300 overflow-y-auto ${
-                    readerTheme === "sepia"
-                      ? "bg-[#FAF4E8] text-[#433422]"
-                      : readerTheme === "charcoal"
-                      ? "bg-[#141416] text-[#E4E4E7]"
-                      : "bg-[#FFFFFF] text-[#1F2937]"
-                  }`}
-                >
-                  <div className="max-w-2xl mx-auto flex-1 flex flex-col justify-center py-6">
-                    {/* Chapter Page Content */}
-                    <div
-                      className="font-serif leading-relaxed space-y-6 select-text whitespace-pre-line"
-                      style={{ fontSize: `${readerFontSize}px` }}
-                    >
-                      {activeBook.content && activeBook.content[readerPage]}
-                    </div>
-                  </div>
 
-                  {/* Book Pagination & Footer controls */}
-                  <div className="max-w-2xl mx-auto w-full flex items-center justify-between border-t border-black/10 dark:border-white/10 pt-4 text-xs font-semibold select-none">
-                    <button
-                      disabled={readerPage === 0}
-                      onClick={() => setReaderPage((p) => p - 1)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-colors ${
-                        readerPage === 0
-                          ? "opacity-30 cursor-not-allowed"
-                          : "hover:bg-black/5 dark:hover:bg-white/5"
-                      }`}
-                    >
-                      <ChevronLeft className="w-4 h-4" /> Previous
-                    </button>
-                    <span className="font-mono">
-                      Page {readerPage + 1} of {activeBook.content?.length || 1}
-                    </span>
-                    <button
-                      disabled={readerPage === (activeBook.content?.length || 1) - 1}
-                      onClick={() => setReaderPage((p) => p + 1)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-colors ${
-                        readerPage === (activeBook.content?.length || 1) - 1
-                          ? "opacity-30 cursor-not-allowed"
-                          : "hover:bg-black/5 dark:hover:bg-white/5"
-                      }`}
-                    >
-                      Next <ChevronRight className="w-4 h-4" />
-                    </button>
+                    {/* Book Pagination & Footer controls */}
+                    <div className="max-w-2xl mx-auto w-full flex items-center justify-between border-t border-black/10 dark:border-white/10 pt-4 text-xs font-semibold select-none">
+                      <button
+                        disabled={readerPage === 0}
+                        onClick={() => setReaderPage((p) => p - 1)}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-colors ${
+                          readerTheme === "sepia"
+                            ? "hover:bg-black/5 text-[#433422]/80 hover:text-[#433422]"
+                            : readerTheme === "charcoal"
+                            ? "hover:bg-white/5 text-[#E4E4E7]/80 hover:text-[#E4E4E7]"
+                            : "hover:bg-black/5 text-[#1F2937]/80 hover:text-[#1F2937]"
+                        } ${readerPage === 0 ? "opacity-30 cursor-not-allowed" : ""}`}
+                      >
+                        <ChevronLeft className="w-4 h-4" /> Previous
+                      </button>
+                      <span className="font-mono opacity-80">
+                        Page {readerPage + 1} of {activeBook.content?.length || 1}
+                      </span>
+                      <button
+                        disabled={readerPage === (activeBook.content?.length || 1) - 1}
+                        onClick={() => setReaderPage((p) => p + 1)}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-colors ${
+                          readerTheme === "sepia"
+                            ? "hover:bg-black/5 text-[#433422]/80 hover:text-[#433422]"
+                            : readerTheme === "charcoal"
+                            ? "hover:bg-white/5 text-[#E4E4E7]/80 hover:text-[#E4E4E7]"
+                            : "hover:bg-black/5 text-[#1F2937]/80 hover:text-[#1F2937]"
+                        } ${readerPage === (activeBook.content?.length || 1) - 1 ? "opacity-30 cursor-not-allowed" : ""}`}
+                      >
+                        Next <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              {/* Collapsible Bookmarks Sidebar */}
+              <AnimatePresence>
+                {showBookmarksSidebar && (
+                  <motion.div
+                    initial={{ x: "100%", opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: "100%", opacity: 0 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 220 }}
+                    className="w-80 h-full border-l border-white/10 bg-[#0A0A0F]/95 backdrop-blur-md flex flex-col z-20 shrink-0 relative"
+                  >
+                    {/* Sidebar Header */}
+                    <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <BookmarkIcon className="w-4 h-4 text-[#B026FF] fill-[#B026FF]/20" />
+                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-white">
+                          Saved Positions
+                        </h3>
+                      </div>
+                      <button
+                        onClick={() => setShowBookmarksSidebar(false)}
+                        className="w-7 h-7 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Quick Add Form */}
+                    <div className="p-4 border-b border-white/10 space-y-3 bg-white/[0.01]">
+                      <div className="flex justify-between items-center text-[10px] text-gray-400 font-mono">
+                        <span>Current Location:</span>
+                        <span className="text-[#00F0FF] font-bold bg-[#00F0FF]/10 px-2 py-0.5 rounded">
+                          Page {readerPage + 1}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={newBookmarkLabel}
+                          onChange={(e) => setNewBookmarkLabel(e.target.value)}
+                          placeholder="Optional short note (e.g., Chapter 2 start)"
+                          className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#B026FF] transition-colors"
+                          maxLength={45}
+                        />
+                        <button
+                          onClick={() => {
+                            if (!activeBook) return;
+                            let finalLabel = newBookmarkLabel.trim();
+                            if (!finalLabel) {
+                              if (readerMode === "text" && activeBook.content && activeBook.content[readerPage]) {
+                                const text = activeBook.content[readerPage].trim();
+                                const firstLine = text.split("\n")[0].trim();
+                                finalLabel = firstLine.length > 35 ? firstLine.substring(0, 35) + "..." : firstLine;
+                              } else {
+                                finalLabel = `Saved Position at Page ${readerPage + 1}`;
+                              }
+                            }
+                            addBookmark(activeBook.id, readerPage, finalLabel);
+                            setNewBookmarkLabel("");
+                            loadActiveBookmarks();
+                          }}
+                          className="w-full py-2 bg-gradient-to-r from-[#B026FF] to-[#00F0FF] rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-90 active:scale-[0.98] transition-all"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Bookmark This Page</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Bookmarks List */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
+                      {activeBookmarks.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 py-12 space-y-2">
+                          <BookmarkIcon className="w-8 h-8 opacity-20 text-[#B026FF]" />
+                          <p className="text-xs font-medium text-gray-400">No saved positions yet</p>
+                          <p className="text-[10px] opacity-60 leading-normal max-w-[180px]">
+                            Bookmark pages to easily save and jump back to key sections.
+                          </p>
+                        </div>
+                      ) : (
+                        [...activeBookmarks]
+                          .sort((a, b) => a.pageIndex - b.pageIndex)
+                          .map((bm) => {
+                            const isCurrent = readerPage === bm.pageIndex;
+                            return (
+                              <div
+                                key={bm.id}
+                                onClick={() => setReaderPage(bm.pageIndex)}
+                                className={`p-3 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col gap-1.5 text-left relative group ${
+                                  isCurrent
+                                    ? "bg-[#B026FF]/10 border-[#B026FF]/30 shadow-[0_0_15px_rgba(176,38,255,0.05)]"
+                                    : "bg-white/[0.02] border-white/5 hover:bg-white/5 hover:border-white/10"
+                                }`}
+                              >
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[10px] font-mono font-bold text-[#00F0FF] bg-[#00F0FF]/10 px-2 py-0.5 rounded">
+                                    Page {bm.pageIndex + 1}
+                                  </span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteBookmark(bm.id);
+                                      loadActiveBookmarks();
+                                    }}
+                                    className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/15 text-gray-400 hover:text-red-500 transition-all"
+                                    title="Delete bookmark"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                                <p className={`text-xs ${isCurrent ? "text-white font-semibold" : "text-gray-300"}`}>
+                                  {bm.label}
+                                </p>
+                                <span className="text-[9px] text-gray-500 font-mono">
+                                  {new Date(bm.createdAt).toLocaleDateString(undefined, {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+                            );
+                          })
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}

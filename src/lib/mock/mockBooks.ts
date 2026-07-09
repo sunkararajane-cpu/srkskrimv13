@@ -186,7 +186,77 @@ export function deleteBook(id: string): boolean {
     saveStoredBooks(filtered);
     // Asynchronously delete the PDF blob from IndexedDB (fire-and-forget)
     deletePDFBlob(id).catch(err => console.error("Failed to delete PDF blob from IndexedDB:", err));
+    
+    // Also delete any bookmarks for this book
+    const bookmarks = getBookmarks();
+    const remainingBookmarks = bookmarks.filter(b => b.bookId !== id);
+    saveBookmarks(remainingBookmarks);
+    
     return true;
   }
   return false;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BOOKMARKS MANAGEMENT
+// ─────────────────────────────────────────────────────────────────────────────
+export interface Bookmark {
+  id: string;
+  bookId: string;
+  pageIndex: number;
+  label: string;
+  createdAt: number;
+}
+
+export function getBookmarks(bookId?: string): Bookmark[] {
+  if (typeof window === 'undefined') return [];
+  const raw = localStorage.getItem('skrimchat_bookmarks');
+  if (!raw) return [];
+  try {
+    const all: Bookmark[] = JSON.parse(raw);
+    if (bookId) {
+      return all.filter(b => b.bookId === bookId);
+    }
+    return all;
+  } catch (e) {
+    return [];
+  }
+}
+
+export function saveBookmarks(bookmarks: Bookmark[]): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('skrimchat_bookmarks', JSON.stringify(bookmarks));
+    window.dispatchEvent(new Event('skrimchat_bookmarks_updated'));
+  }
+}
+
+export function addBookmark(bookId: string, pageIndex: number, label: string): Bookmark {
+  const bookmarks = getBookmarks();
+  // Avoid duplicate bookmarks for the exact same page index
+  const existingIndex = bookmarks.findIndex(b => b.bookId === bookId && b.pageIndex === pageIndex);
+  if (existingIndex !== -1) {
+    // Update label
+    bookmarks[existingIndex].label = label;
+    bookmarks[existingIndex].createdAt = Date.now();
+    saveBookmarks(bookmarks);
+    return bookmarks[existingIndex];
+  }
+
+  const newBookmark: Bookmark = {
+    id: 'bm_' + Math.random().toString(36).substr(2, 9),
+    bookId,
+    pageIndex,
+    label,
+    createdAt: Date.now()
+  };
+  bookmarks.push(newBookmark);
+  saveBookmarks(bookmarks);
+  return newBookmark;
+}
+
+export function deleteBookmark(id: string): void {
+  const bookmarks = getBookmarks();
+  const filtered = bookmarks.filter(b => b.id !== id);
+  saveBookmarks(filtered);
+}
+
