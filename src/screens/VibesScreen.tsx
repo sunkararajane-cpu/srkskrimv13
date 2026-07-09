@@ -1033,7 +1033,7 @@ function VibeCard({
   };
 
   return (
-    <div className="w-full h-full bg-[#08080C] pt-24 pb-4 px-4 md:px-6 flex flex-col md:grid md:grid-cols-12 md:gap-6 text-white overflow-y-auto md:overflow-hidden select-none">
+    <div className="w-full h-full bg-[#08080C] pt-[76px] pb-3 px-4 md:px-6 flex flex-col md:grid md:grid-cols-12 md:gap-6 text-white overflow-y-auto md:overflow-hidden select-none">
       {/* LEFT COLUMN: Holographic Media Deck */}
       <div className="md:col-span-7 lg:col-span-8 flex flex-col h-full justify-between gap-4 overflow-hidden min-h-[350px] md:min-h-0">
         
@@ -1131,36 +1131,36 @@ function VibeCard({
         </div>
 
         {/* Console Deck Control Bar (Playbar) — single compact row */}
-        <div className="flex items-center bg-[#0F0F15] border border-white/5 rounded-2xl p-2.5 px-3.5 w-full select-none gap-2.5 transition-shadow duration-300 hover:shadow-[0_0_20px_-4px_rgba(176,38,255,0.25)]">
+        <div className="flex items-center bg-[#0F0F15] border border-white/10 rounded-2xl p-2.5 px-3.5 w-full select-none gap-2.5 transition-all duration-300 hover:shadow-[0_0_25px_rgba(176,38,255,0.2),_0_0_50px_rgba(0,240,255,0.1)] hover:border-[#B026FF]/30">
 
           {/* Play / Pause */}
           <button
             onClick={handleTogglePlayWithGesture}
             title={isPlaying ? 'Pause' : 'Play'}
-            className="p-2 rounded-xl bg-white/5 hover:bg-[#B026FF]/20 text-white transition-all duration-200 active:scale-90 hover:scale-110 hover:shadow-[0_0_12px_rgba(176,38,255,0.45)] shrink-0"
+            className="p-2 rounded-xl bg-white/5 hover:bg-[#B026FF]/20 text-white transition-all duration-300 active:scale-95 hover:scale-110 border border-white/5 hover:border-[#B026FF]/30 hover:shadow-[0_0_15px_rgba(176,38,255,0.4)] shrink-0 cursor-pointer animate-none"
           >
             {isPlaying ? <Pause className="w-4 h-4 text-[#00F0FF]" /> : <Play className="w-4 h-4 text-[#B026FF] fill-[#B026FF]" />}
           </button>
 
-          {/* Seeker Line — 50% shorter */}
+          {/* Seeker Line — 50% shorter with 50% height reduction */}
           <div
             onClick={handleSeek}
-            className="flex-1 h-1 bg-white/10 rounded-full relative cursor-pointer group/seeker transition-all duration-200 hover:h-[5px]"
+            className="flex-1 h-[2px] bg-white/10 rounded-full relative cursor-pointer group/seeker transition-all duration-300 hover:h-[4px]"
             title="Click to Seek Vibe Progress"
           >
             {/* Click hit box padding */}
-            <div className="absolute inset-y-[-8px] inset-x-0 cursor-pointer" />
+            <div className="absolute inset-y-[-10px] inset-x-0 cursor-pointer" />
 
             <div className="absolute inset-0 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#B026FF] to-[#00F0FF] rounded-full transition-all duration-100 ease-out group-hover/seeker:shadow-[0_0_6px_#00F0FF]"
+                className="h-full bg-gradient-to-r from-[#B026FF] via-[#7B2cFF] to-[#00F0FF] rounded-full transition-all duration-100 ease-out group-hover/seeker:shadow-[0_0_8px_#00F0FF]"
                 style={{ width: `${progress}%` }}
               />
             </div>
 
-            {/* Seeker knob on hover */}
+            {/* Seeker knob on hover — gorgeous pulsing glow */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_10px_#00F0FF] opacity-0 scale-50 group-hover/seeker:opacity-100 group-hover/seeker:scale-100 transition-all duration-200 pointer-events-none"
+              className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_12px_#00F0FF,_0_0_4px_#00F0FF] opacity-0 scale-50 group-hover/seeker:opacity-100 group-hover/seeker:scale-100 transition-all duration-300 pointer-events-none"
               style={{ left: `calc(${progress}% - 5px)` }}
             />
           </div>
@@ -1169,16 +1169,16 @@ function VibeCard({
           <button
             onClick={handleToggleMuteWithGesture}
             title={muted ? 'Unmute' : 'Mute'}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-all duration-200 active:scale-90 hover:scale-110 hover:shadow-[0_0_12px_rgba(0,240,255,0.35)] shrink-0"
+            className="p-2 rounded-xl bg-white/5 hover:bg-[#00F0FF]/20 text-white transition-all duration-300 active:scale-95 hover:scale-110 border border-white/5 hover:border-[#00F0FF]/30 hover:shadow-[0_0_15px_rgba(0,240,255,0.4)] shrink-0 cursor-pointer"
           >
-            {muted ? <VolumeX className="w-4 h-4 text-gray-500" /> : <Volume2 className="w-4 h-4 text-[#00F0FF]" />}
+            {muted ? <VolumeX className="w-4 h-4 text-white/40" /> : <Volume2 className="w-4 h-4 text-[#00F0FF]" />}
           </button>
 
           {/* Fullscreen Toggle */}
           <button
             onClick={handleToggleFullscreen}
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-all duration-200 active:scale-90 hover:scale-110 hover:shadow-[0_0_12px_rgba(255,255,255,0.25)] shrink-0"
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition-all duration-300 active:scale-95 hover:scale-110 border border-white/5 hover:border-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.25)] shrink-0 cursor-pointer"
           >
             {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
           </button>
@@ -1186,41 +1186,81 @@ function VibeCard({
 
       </div>
 
-      {/* RIGHT COLUMN: Vibe Telemetry & Interaction Console */}
-      <div className="md:col-span-5 lg:col-span-4 flex flex-col h-full gap-4 overflow-hidden min-h-[450px] md:min-h-0">
+      {/* RIGHT COLUMN: Cybernetic Telemetry & Interactive Console */}
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        className="md:col-span-5 lg:col-span-4 flex flex-col h-full gap-3 overflow-hidden min-h-0 md:min-h-0"
+      >
         
         {/* Main Interface Console Board */}
-        <div className="flex-1 bg-[#0D0D14]/90 backdrop-blur-lg border border-white/10 rounded-3xl p-4 flex flex-col gap-4 overflow-hidden min-h-0 shadow-2xl shadow-[#B026FF]/5">
+        <div className="flex-1 bg-[#0D0D14]/90 backdrop-blur-lg border border-white/10 rounded-3xl p-3.5 flex flex-col gap-3 overflow-hidden min-h-0 shadow-2xl shadow-[#B026FF]/5">
           
-          {/* Creator Profile Header */}
-          <div className="flex items-center justify-between border-b border-white/5 pb-3">
+          {/* Creator Profile & Circular Telemetry Header */}
+          <div className="flex items-center justify-between border-b border-white/5 pb-2.5 shrink-0">
             <div className="flex items-center gap-3">
-              <img 
-                src={displayAvatar || null} 
-                alt={displayUser} 
-                onClick={handleProfileClick}
-                className="w-10 h-10 rounded-full border border-[#B026FF]/60 object-cover shadow-inner cursor-pointer hover:border-[#00F0FF] transition-colors" 
-              />
+              {/* Holographic Avatar with Live Telemetry Progress Circular Border */}
+              <div className="relative w-11 h-11 flex items-center justify-center shrink-0">
+                {/* SVG circular progress indicator */}
+                <svg className="absolute inset-0 w-full h-full -rotate-90 scale-[1.08] select-none pointer-events-none drop-shadow-[0_0_6px_rgba(0,240,255,0.3)]" viewBox="0 0 36 36">
+                  <path
+                    className="text-white/5"
+                    strokeWidth="2.5"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    strokeWidth="2.5"
+                    strokeDasharray={`${vibe.vibeScore || 80}, 100`}
+                    strokeLinecap="round"
+                    stroke="url(#avatar-vibe-grad)"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <defs>
+                    <linearGradient id="avatar-vibe-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#B026FF" />
+                      <stop offset="100%" stopColor="#00F0FF" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <img 
+                  src={displayAvatar || null} 
+                  alt={displayUser} 
+                  onClick={handleProfileClick}
+                  className="w-9 h-9 rounded-full object-cover shadow-inner cursor-pointer hover:scale-105 active:scale-95 transition-transform z-10 border border-black" 
+                />
+              </div>
+
               <div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span 
                     onClick={handleProfileClick}
-                    className="font-bold text-sm text-white hover:text-[#B026FF] cursor-pointer transition-colors"
+                    className="font-bold text-sm text-white hover:text-[#00F0FF] cursor-pointer transition-colors leading-none"
                   >
                     {displayUser}
                   </span>
-                  <span className="text-[9px] text-[#B026FF] font-extrabold border border-[#B026FF]/40 px-2 py-0.5 rounded-full uppercase tracking-wider bg-[#B026FF]/10 select-none">
+                  <span className="text-[8px] text-[#B026FF] font-black border border-[#B026FF]/40 px-1.5 py-0.5 rounded-full uppercase tracking-widest bg-[#B026FF]/10 select-none">
                     {vibe?.creatorTier}
                   </span>
                 </div>
-                <span 
-                  onClick={handleProfileClick}
-                  className="text-xs text-white/40 block leading-tight hover:text-white cursor-pointer transition-colors"
-                >
-                  {displayHandle}
-                </span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span 
+                    onClick={handleProfileClick}
+                    className="text-[11px] text-white/40 hover:text-white cursor-pointer transition-colors leading-none"
+                  >
+                    {displayHandle}
+                  </span>
+                  <span className="text-[9px] text-white/30 font-mono">•</span>
+                  <span className="text-[9px] text-[#00F0FF] font-mono font-bold tracking-tight">
+                    VIBE: {vibe.vibeScore.toFixed(0)}%
+                  </span>
+                </div>
               </div>
             </div>
+
             {isMe ? (
               <button 
                 onClick={(e) => {
@@ -1229,7 +1269,7 @@ function VibeCard({
                     onDelete?.(vibe.id);
                   }
                 }}
-                className="text-[10px] font-black px-3 py-1.5 rounded-xl tracking-widest transition-all active:scale-95 border border-red-500/30 text-red-500 bg-red-500/10 hover:bg-red-500/20"
+                className="text-[9px] font-black px-2.5 py-1.5 rounded-xl tracking-wider transition-all active:scale-95 border border-red-500/30 text-red-500 bg-red-500/10 hover:bg-red-500/20 shrink-0"
                 title="Delete Vibe"
               >
                 DELETE
@@ -1237,10 +1277,10 @@ function VibeCard({
             ) : (
               <button 
                 onClick={handleFollowToggle}
-                className={`text-[10px] font-black px-3 py-1.5 rounded-xl tracking-widest transition-all active:scale-95 border ${
+                className={`text-[9px] font-black px-2.5 py-1.5 rounded-xl tracking-widest transition-all active:scale-95 border shrink-0 ${
                   followStatus.following 
                     ? 'text-white/40 bg-white/5 border-white/10 hover:bg-white/10' 
-                    : 'text-[#00F0FF] bg-[#00F0FF]/10 hover:bg-[#00F0FF]/20 border-[#00F0FF]/30'
+                    : 'text-[#00F0FF] bg-[#00F0FF]/10 hover:bg-[#00F0FF]/20 border-[#00F0FF]/30 hover:shadow-[0_0_10px_rgba(0,240,255,0.2)]'
                 }`}
               >
                 {followStatus.following ? 'FOLLOWING' : 'FOLLOW'}
@@ -1249,183 +1289,174 @@ function VibeCard({
           </div>
 
           {vibe.isReshare && (
-            <div className="flex items-center gap-1.5 text-[10px] text-[#00F0FF] font-mono font-bold bg-[#00F0FF]/15 border border-[#00F0FF]/30 px-3 py-1 rounded-xl w-fit select-none">
-              <Repeat className="w-3.5 h-3.5 text-[#00F0FF]" />
-              <span>RESHARE_VIBE_FROM: {vibe.resharedFrom?.toUpperCase() || 'USER'}</span>
+            <div className="flex items-center gap-1.5 text-[9px] text-[#00F0FF] font-mono font-bold bg-[#00F0FF]/10 border border-[#00F0FF]/25 px-2.5 py-1 rounded-lg w-fit select-none shrink-0">
+              <Repeat className="w-3 h-3 text-[#00F0FF]" />
+              <span>RESHARE_FROM: {vibe.resharedFrom?.toUpperCase() || 'USER'}</span>
             </div>
           )}
 
-          {/* Vibe Meter / Telemetry Gauge */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-[10px] font-mono text-white/50 tracking-wider">
-              <span>VIBE TELEMETRY_</span>
-              <span className="font-bold text-[#FF2D87]">
-                {vibe.vibeScore > 75 ? '🚀 NOVA' : '🔥 ACTIVE'}
-              </span>
+          {/* Cyber Broadcast Deck — Merged caption, mood tags, chroma color tag, and audio metadata */}
+          <div className="bg-black/30 border border-white/5 rounded-2xl p-2.5 flex flex-col gap-2 relative overflow-hidden select-text shrink-0">
+            {/* HUD Status Header */}
+            <div className="flex items-center justify-between text-[8px] font-mono text-white/30 tracking-widest uppercase select-none border-b border-white/5 pb-1">
+              <span>BROADCAST_NODE // METADATA</span>
+              {vibe.mood && (
+                <span className="flex items-center gap-1 text-[#00F0FF] font-black">
+                  <span>{MOODS.find(m => m.id === vibe.mood)?.emoji || '✨'}</span>
+                  <span className="capitalize">{vibe.mood}</span>
+                </span>
+              )}
             </div>
-            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden relative border border-white/5">
-              <div 
-                className="h-full bg-gradient-to-r from-[#B026FF] to-[#00F0FF]"
-                style={{ width: `${vibe.vibeScore}%` }}
+
+            {/* Caption text */}
+            <div className="text-xs leading-relaxed max-h-[52px] overflow-y-auto custom-scrollbar pr-0.5 font-sans">
+              <Caption text={vibe.caption} />
+            </div>
+
+            {/* Tags and Live Audio Row */}
+            <div className="flex items-center justify-between gap-2 text-[9px] font-mono text-white/50 border-t border-white/5 pt-1.5 select-none shrink-0">
+              {/* Hashtags & color tag */}
+              <div className="flex items-center gap-1.5 overflow-hidden">
+                {(vibe.colorTag || vibe.bgColor) && (
+                  <span className="inline-flex items-center gap-1">
+                    <span 
+                      className="w-1.5 h-1.5 rounded-full border border-white/20 shrink-0" 
+                      style={{ backgroundColor: vibe.colorTag || vibe.bgColor }} 
+                    />
+                    <span className="text-[8px] opacity-60">CHROMA</span>
+                  </span>
+                )}
+                {vibe.hashtags && vibe.hashtags.slice(0, 3).map((tag, idx) => (
+                  <span key={idx} className="text-[#00F0FF] font-bold text-[8px] hover:underline cursor-pointer">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* Inline Interactive Audio Widget */}
+              <div className="flex items-center gap-1 text-[#B026FF] bg-[#B026FF]/10 px-2 py-0.5 rounded-lg border border-[#B026FF]/20 max-w-[130px] truncate select-none shrink-0">
+                <Music className="w-2.5 h-2.5 animate-pulse shrink-0" />
+                <span className="text-[8px] font-bold truncate leading-none uppercase" title={vibe.audio}>
+                  {vibe.audio?.split('·')[0] || 'Audio'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Unified Cyber Dock — Social buttons + reaction stream in a single high-density bar */}
+          <div className="flex items-center justify-between gap-2 bg-white/5 border border-white/10 rounded-2xl p-1.5 px-2.5 select-none shrink-0">
+            {/* Left: Interactive Reaction Sparks */}
+            <div className="flex-1 overflow-hidden min-w-0">
+              <ReactionRow
+                initialReactions={reactions}
+                activeReactionId={activeReactionId}
+                onReact={handleReact}
+                className="scale-[0.85] origin-left"
               />
             </div>
-            <div className="flex justify-between text-[9px] text-white/40 font-mono tracking-tight">
-              <span>SCORE: {vibe.vibeScore.toFixed(0)} pts</span>
-              <span>SYSTEM ONLINE</span>
-            </div>
-          </div>
 
-          {/* Caption */}
-          <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-xs max-h-[72px] overflow-y-auto custom-scrollbar">
-            <Caption text={vibe.caption} />
-          </div>
+            {/* Cyber Divider */}
+            <div className="h-5 w-[1px] bg-white/10 shrink-0" />
 
-          {/* Metadata Tags Row: Mood, Color, and Hashtags */}
-          <div className="flex flex-wrap gap-1.5 mt-0.5 select-none">
-            {/* Mood Tag */}
-            {vibe.mood && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/80">
-                <span>{MOODS.find(m => m.id === vibe.mood)?.emoji || '✨'}</span>
-                <span className="capitalize">{vibe.mood}</span>
-              </span>
-            )}
-
-            {/* Color Tag Indicator */}
-            {(vibe.colorTag || vibe.bgColor) && (
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/80">
-                <span 
-                  className="w-2 h-2 rounded-full border border-white/20" 
-                  style={{ backgroundColor: vibe.colorTag || vibe.bgColor }} 
-                />
-                <span>Color Tag</span>
-              </span>
-            )}
-
-            {/* Custom/Selected Hashtags */}
-            {vibe.hashtags && vibe.hashtags.length > 0 && vibe.hashtags.map((tag, idx) => (
-              <span key={idx} className="inline-flex items-center text-[10px] font-mono font-semibold px-2.5 py-1 rounded-full bg-[#00F0FF]/5 border border-[#00F0FF]/15 text-[#00F0FF]">
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          {/* Social Action Grid */}
-          <div className="grid grid-cols-5 gap-1.5">
-            
-            {/* Pulse Action */}
-            <button 
-              onClick={() => {
-                setLiked(l => {
-                  const next = !l;
-                  if (next) {
-                    // Trigger vibe like notification
-                    useNotificationStore.getState().addNotification({
-                      type: 'vibe_like',
-                      user: displayUser,
-                      avatar: displayAvatar,
-                      text: 'liked your vibe',
-                      time: 'Just now',
-                      vibeId: vibe.id,
+            {/* Right: Social quick actions */}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Pulse Action button */}
+              <button 
+                onClick={() => {
+                  setLiked(l => {
+                    const next = !l;
+                    if (next) {
+                      useNotificationStore.getState().addNotification({
+                        type: 'vibe_like',
+                        user: displayUser,
+                        avatar: displayAvatar,
+                        text: 'liked your vibe',
+                        time: 'Just now',
+                        vibeId: vibe.id,
+                      });
+                    }
+                    setPulses(p => {
+                      const newP = next ? p + 1 : p - 1;
+                      try {
+                        const arr: string[] = JSON.parse(localStorage.getItem('skrimchat_vibe_liked') || '[]');
+                        const updated = next ? [...arr.filter(x => x !== vibe.id), vibe.id] : arr.filter(x => x !== vibe.id);
+                        localStorage.setItem('skrimchat_vibe_liked', JSON.stringify(updated));
+                        const c: Record<string,number> = JSON.parse(localStorage.getItem('skrimchat_vibe_counts') || '{}');
+                        c[vibe.id] = newP;
+                        localStorage.setItem('skrimchat_vibe_counts', JSON.stringify(c));
+                      } catch (e) {}
+                      return newP;
                     });
-                  }
-                  setPulses(p => {
-                    const newP = next ? p + 1 : p - 1;
-                    try {
-                      const arr: string[] = JSON.parse(localStorage.getItem('skrimchat_vibe_liked') || '[]');
-                      const updated = next ? [...arr.filter(x => x !== vibe.id), vibe.id] : arr.filter(x => x !== vibe.id);
-                      localStorage.setItem('skrimchat_vibe_liked', JSON.stringify(updated));
-                      const c: Record<string,number> = JSON.parse(localStorage.getItem('skrimchat_vibe_counts') || '{}');
-                      c[vibe.id] = newP;
-                      localStorage.setItem('skrimchat_vibe_counts', JSON.stringify(c));
-                    } catch (e) {}
-                    return newP;
+                    return next;
                   });
-                  return next;
-                });
-                incrementStat('reactionsSent', 1);
-                incrementStat('pulseScore', 3);
-              }}
-              className={`p-2 rounded-2xl flex flex-col items-center justify-center gap-1 border transition-all active:scale-95 ${
-                liked 
-                  ? 'bg-[#B026FF]/15 border-[#B026FF] text-[#B026FF] shadow-lg shadow-[#B026FF]/10' 
-                  : 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white'
-              }`}
-              title="Pulse (Like)"
-            >
-              <Zap className={`w-4 h-4 ${liked ? 'fill-[#B026FF]' : ''}`} />
-              <span className="text-[10px] font-bold font-mono">{fmt(pulses)}</span>
-            </button>
+                  incrementStat('reactionsSent', 1);
+                  incrementStat('pulseScore', 3);
+                }}
+                className={`p-1.5 rounded-lg border flex items-center gap-1 transition-all duration-300 ${
+                  liked 
+                    ? 'bg-[#B026FF]/15 border-[#B026FF] text-[#B026FF] hover:bg-[#B026FF]/25 shadow-lg shadow-[#B026FF]/10' 
+                    : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10 hover:text-white hover:bg-white/10'
+                }`}
+                title="Pulse Vibe"
+              >
+                <Zap className={`w-3.5 h-3.5 ${liked ? 'fill-[#B026FF]' : ''}`} />
+                <span className="text-[9px] font-mono font-bold leading-none">{fmt(pulses)}</span>
+              </button>
 
+              {/* Bookmark (Save) Action button */}
+              <button 
+                onClick={() => {
+                  if (saved) {
+                    unsavePost(vibe.id);
+                    setToastMessage("Removed from saved vibes");
+                  } else {
+                    savePost(vibe.id, vibe);
+                    setToastMessage("Saved vibe to Identity");
+                  }
+                  setTimeout(() => setToastMessage(''), 2000);
+                }}
+                className={`p-1.5 rounded-lg border flex items-center gap-1 transition-all duration-300 ${
+                  saved 
+                    ? 'bg-[#00F0FF]/15 border-[#00F0FF] text-[#00F0FF] hover:bg-[#00F0FF]/25 shadow-lg shadow-[#00F0FF]/10' 
+                    : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10 hover:text-white hover:bg-white/10'
+                }`}
+                title="Save to Identity"
+              >
+                <Bookmark className={`w-3.5 h-3.5 ${saved ? 'fill-[#00F0FF]' : ''}`} />
+              </button>
 
-            {/* Save Action */}
-            <button 
-              onClick={() => {
-                if (saved) {
-                  unsavePost(vibe.id);
-                } else {
-                  savePost(vibe.id, vibe);
-                }
-              }}
-              className={`p-2 rounded-2xl flex flex-col items-center justify-center gap-1 border transition-all active:scale-95 ${
-                saved 
-                  ? 'bg-[#00F0FF]/15 border-[#00F0FF] text-[#00F0FF] shadow-lg shadow-[#00F0FF]/10' 
-                  : 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white'
-              }`}
-              title="Save to Identity"
-            >
-              <Bookmark className={`w-4 h-4 ${saved ? 'fill-[#00F0FF]' : ''}`} />
-              <span className="text-[10px] font-bold font-mono">{fmt(vibe.saves)}</span>
-            </button>
+              {/* Reshare Action button */}
+              <button 
+                onClick={handleReshare}
+                className={`p-1.5 rounded-lg border flex items-center gap-1 transition-all duration-300 ${
+                  reshared 
+                    ? 'bg-green-500/15 border-green-500/40 text-green-500' 
+                    : 'bg-white/5 border-white/5 text-white/60 hover:border-white/10 hover:text-white hover:bg-white/10'
+                }`}
+                title="Reshare Node"
+              >
+                <Repeat className="w-3.5 h-3.5" />
+                <span className="text-[9px] font-mono font-bold leading-none">{fmt(resharesCount)}</span>
+              </button>
 
-            {/* Reshare Action */}
-            <button 
-              onClick={handleReshare}
-              className={`p-2 rounded-2xl flex flex-col items-center justify-center gap-1 border transition-all active:scale-95 ${
-                reshared 
-                  ? 'bg-[#B026FF]/15 border-[#B026FF] text-[#B026FF] shadow-lg shadow-[#B026FF]/10 cursor-not-allowed' 
-                  : 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white'
-              }`}
-              title={reshared ? "Already Reshared" : "Reshare to Profile"}
-              disabled={reshared}
-            >
-              <Repeat className={`w-4 h-4 ${reshared ? 'text-[#B026FF]' : ''}`} />
-              <span className="text-[10px] font-bold font-mono">{fmt(resharesCount)}</span>
-            </button>
-
-            {/* Share Action */}
-            <button 
-              onClick={handleShare}
-              className="p-2 rounded-2xl bg-white/5 border border-white/5 text-white/60 hover:bg-white/10 hover:text-white flex flex-col items-center justify-center gap-1 transition-all active:scale-95"
-              title="Share Link"
-            >
-              <Share2 className="w-4 h-4" />
-              <span className="text-[10px] font-bold font-mono">{fmt(sharesCount)}</span>
-            </button>
-
-            {/* Audio Widget */}
-            <div className="p-2 rounded-2xl bg-white/5 border border-white/5 text-white/60 flex flex-col items-center justify-center gap-1 overflow-hidden">
-              <Music className="w-4 h-4 text-[#B026FF] animate-pulse" />
-              <span className="text-[8px] font-bold text-center truncate w-full tracking-tighter" title={vibe.audio}>
-                {vibe.audio?.split('·')[0] || 'Audio'}
-              </span>
+              {/* External Share button */}
+              <button 
+                onClick={handleShare}
+                className="p-1.5 rounded-lg bg-white/5 border border-white/5 text-white/60 hover:border-white/10 hover:text-white flex items-center transition-all duration-300"
+                title="Share Node"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+              </button>
             </div>
-
-          </div>
-
-          {/* Reaction Sparks Container */}
-          <div className="bg-white/5 p-2 rounded-2xl border border-white/5 flex items-center justify-center">
-            <ReactionRow
-              initialReactions={reactions}
-              activeReactionId={activeReactionId}
-              onReact={handleReact}
-              className="scale-95 origin-center w-full justify-around"
-            />
           </div>
 
           {/* Direct Comments Console Feed */}
-          <div className="flex-1 flex flex-col bg-black/40 rounded-2xl border border-white/5 p-3 overflow-hidden min-h-0">
+          <div className="flex-1 flex flex-col bg-black/40 rounded-2xl border border-white/5 p-3 overflow-hidden min-h-[140px] transition-all duration-300 hover:border-[#B026FF]/20 hover:shadow-[0_0_15px_rgba(176,38,255,0.05)]">
             <div className="text-[9px] font-mono text-white/40 mb-2 tracking-wider flex items-center justify-between border-b border-white/5 pb-1 select-none shrink-0">
-              <span>SECURE_COMMENTS_STREAM</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#B026FF] animate-pulse" />
+                <span>SECURE_COMMENTS_STREAM</span>
+              </span>
               <span>{fmt(commentCount)} NODES</span>
             </div>
             
@@ -1434,18 +1465,22 @@ function VibeCard({
             <div className="flex-1 min-h-0 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar">
               {commentsList.map((c, i) => (
                 <div key={c.id || i} className="flex gap-2 text-xs">
-                  <img src={`https://i.pravatar.cc/150?img=${(i + 20) % 70}`} className="w-6 h-6 rounded-full object-cover shrink-0 border border-white/10" alt="" />
+                  <img 
+                    src={`https://i.pravatar.cc/150?img=${(i + 20) % 70}`} 
+                    className="w-6 h-6 rounded-full object-cover shrink-0 border border-white/10" 
+                    alt="" 
+                  />
                   <div className="flex-1 bg-white/5 p-2 rounded-xl border border-white/5">
                     <div className="flex justify-between text-[9px] text-white/30 mb-0.5 font-mono">
                       <span className="font-bold text-[#B026FF]">{c.user}</span>
                       <span>{c.time}</span>
                     </div>
-                    <p className="text-white/80 leading-normal text-[11px]">{c.text}</p>
+                    <p className="text-white/80 leading-normal text-[11px] select-text">{c.text}</p>
                   </div>
                 </div>
               ))}
               {commentsList.length === 0 && (
-                <div className="text-center py-8 text-white/30 text-xs">No entries. Broadcast a comment node below!</div>
+                <div className="text-center py-8 text-white/30 text-xs select-none">No active logs. Broadcast a message below!</div>
               )}
             </div>
 
@@ -1455,12 +1490,13 @@ function VibeCard({
                 type="text"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Inject comment..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white transition-all duration-200 focus:outline-none focus:border-[#B026FF] focus:shadow-[0_0_10px_rgba(176,38,255,0.3)] placeholder-white/20 font-sans"
+                onKeyDown={(e) => e.stopPropagation()}
+                placeholder="Inject encrypted log..."
+                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white transition-all duration-300 focus:outline-none focus:bg-white/10 focus:border-[#B026FF] focus:shadow-[0_0_15px_rgba(176,38,255,0.25)] placeholder-white/20 font-mono"
               />
               <button
                 type="submit"
-                className="px-3 rounded-xl bg-[#B026FF] hover:bg-[#B026FF]/80 text-white flex items-center justify-center transition-all duration-200 shrink-0 active:scale-95 hover:scale-105 hover:shadow-[0_0_12px_rgba(176,38,255,0.5)]"
+                className="px-3 rounded-xl bg-gradient-to-r from-[#B026FF] to-[#7B2cFF] hover:from-[#C046FF] hover:to-[#8B3cFF] text-white flex items-center justify-center transition-all duration-300 shrink-0 active:scale-95 hover:scale-105 hover:shadow-[0_0_15px_rgba(176,38,255,0.6)] cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>
@@ -2516,6 +2552,10 @@ export default function VibesScreen() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (isCreateOpen) return;
+      // Do not navigate if the user is typing in an input or textarea
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+        return;
+      }
       if (e.key === 'ArrowDown') goNext();
       if (e.key === 'ArrowUp')   goPrev();
     };
