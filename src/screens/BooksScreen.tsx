@@ -521,17 +521,12 @@ export default function BooksScreen() {
 
                   {/* PDF Viewer */}
                   {pdfBlobUrl ? (
-                    <object
-                      data={`${pdfBlobUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                      type="application/pdf"
-                      className="w-full h-full bg-[#121214]"
-                    >
-                      <embed
-                        src={`${pdfBlobUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                        type="application/pdf"
-                        className="w-full h-full"
-                      />
-                    </object>
+                    <iframe
+                      src={`${pdfBlobUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                      className="w-full h-full bg-[#121214] border-none"
+                      title={activeBook.title}
+                      id="secure-pdf-iframe"
+                    />
                   ) : (
                     <div className="text-center p-8 flex flex-col items-center justify-center gap-4">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B026FF]"></div>
