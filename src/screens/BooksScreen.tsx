@@ -36,6 +36,7 @@ export default function BooksScreen() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Determine if viewing own books or someone else's
   // If username is provided, we are viewing that specific user's books.
@@ -171,7 +172,7 @@ export default function BooksScreen() {
   };
 
   // Check file type and size before uploading
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     setUploadError(null);
     setUploadingStatus("Uploading publication...");
     if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
@@ -194,68 +195,77 @@ export default function BooksScreen() {
           clearInterval(interval);
           return null;
         }
-        if (prev >= 100) {
+        if (prev >= 90) {
           clearInterval(interval);
-          setUploadingStatus("✨ Synthesizing publication pages & reflowing layout...");
-          
-          // Random premium book cover gradient
-          const gradients = [
-            "from-emerald-950 via-teal-950 to-black text-emerald-100 border-emerald-900/30",
-            "from-purple-950 via-violet-950 to-black text-purple-100 border-violet-900/30",
-            "from-rose-950 via-red-950 to-black text-rose-100 border-rose-900/30",
-            "from-sky-950 via-blue-950 to-black text-sky-100 border-blue-900/30",
-            "from-amber-950 via-yellow-950 to-black text-amber-100 border-amber-900/30"
-          ];
-          const randomCover = gradients[Math.floor(Math.random() * gradients.length)];
-
-          // Extract text page-by-page first to save in the metadata
-          extractTextFromPDF(file).then((pagesText) => {
-            return addBookWithBlob({
-              ownerUsername: currentUser?.username || "@anonymous",
-              ownerDisplayName: currentUser?.fullName || currentUser?.displayName || "Anonymous Creator",
-              title: file.name.replace(".pdf", "").replace(/[-_]/g, " "),
-              author: currentUser?.fullName || currentUser?.displayName || "You",
-              fileName: file.name,
-              sizeBytes: file.size,
-              description: "User uploaded publication in high-fidelity secure sandbox.",
-              coverColor: randomCover,
-              content: pagesText
-            }, file);
-          }).catch((err) => {
-            console.warn("Could not extract PDF text, saving metadata without content", err);
-            // Fallback: save without text content
-            return addBookWithBlob({
-              ownerUsername: currentUser?.username || "@anonymous",
-              ownerDisplayName: currentUser?.fullName || currentUser?.displayName || "Anonymous Creator",
-              title: file.name.replace(".pdf", "").replace(/[-_]/g, " "),
-              author: currentUser?.fullName || currentUser?.displayName || "You",
-              fileName: file.name,
-              sizeBytes: file.size,
-              description: "User uploaded publication in high-fidelity secure sandbox.",
-              coverColor: randomCover
-            }, file);
-          }).then(() => {
-            loadBooks(); // reload catalog state
-            setUploadProgress(null);
-          }).catch((err) => {
-            console.error("IndexedDB error:", err);
-            setUploadError("Secure sandboxed write error. Please try again.");
-            setUploadProgress(null);
-          });
-
-          return 100; // Keep showing progress while processing, will be reset to null when done
+          return 90;
         }
-        return prev + 10;
+        return prev + 15;
       });
-    }, 120);
+    }, 80);
+
+    try {
+      setUploadingStatus("✨ Synthesizing publication pages & reflowing layout...");
+      
+      // Extract text page-by-page
+      let pagesText: string[] | undefined = undefined;
+      try {
+        pagesText = await extractTextFromPDF(file);
+      } catch (e) {
+        console.warn("Could not extract PDF text, saving metadata without content", e);
+      }
+
+      // Random premium book cover gradient
+      const gradients = [
+        "from-emerald-950 via-teal-950 to-black text-emerald-100 border-emerald-900/30",
+        "from-purple-950 via-violet-950 to-black text-purple-100 border-violet-900/30",
+        "from-rose-950 via-red-950 to-black text-rose-100 border-rose-900/30",
+        "from-sky-950 via-blue-950 to-black text-sky-100 border-blue-900/30",
+        "from-amber-950 via-yellow-950 to-black text-amber-100 border-amber-900/30"
+      ];
+      const randomCover = gradients[Math.floor(Math.random() * gradients.length)];
+
+      await addBookWithBlob({
+        ownerUsername: currentUser?.username || "@anonymous",
+        ownerDisplayName: currentUser?.fullName || currentUser?.displayName || "Anonymous Creator",
+        title: file.name.replace(".pdf", "").replace(/[-_]/g, " "),
+        author: currentUser?.fullName || currentUser?.displayName || "You",
+        fileName: file.name,
+        sizeBytes: file.size,
+        description: "User uploaded publication in high-fidelity secure sandbox.",
+        coverColor: randomCover,
+        content: pagesText
+      }, file);
+
+      setUploadProgress(100);
+      setTimeout(() => {
+        setUploadProgress(null);
+        loadBooks(); // reload catalog state immediately
+      }, 300);
+
+    } catch (err) {
+      console.error("IndexedDB error:", err);
+      setUploadError("Secure sandboxed write error. Please try again.");
+      setUploadProgress(null);
+    } finally {
+      clearInterval(interval);
+    }
   };
 
   // Delete Book handler
   const handleDelete = (e: React.MouseEvent, bookId: string) => {
     e.stopPropagation();
     if (confirm("Are you sure you want to remove this publication from your catalog?")) {
-      deleteBook(bookId);
+      const deleted = deleteBook(bookId);
+      if (deleted) {
+        loadBooks(); // refresh list immediately
+      }
     }
+  };
+
+  // Programmatic container click handler for file picker
+  const handleContainerClick = () => {
+    if (uploadProgress !== null) return;
+    fileInputRef.current?.click();
   };
 
   // Open protected reader
@@ -331,10 +341,11 @@ export default function BooksScreen() {
         {/* ────────────────── UPLOAD ZONE (Only for Own Library) ────────────────── */}
         {isOwnLibrary && (
           <div
+            onClick={handleContainerClick}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`relative rounded-2xl border-2 border-dashed p-8 transition-all duration-300 flex flex-col items-center text-center group ${
+            className={`relative rounded-2xl border-2 border-dashed p-8 transition-all duration-300 flex flex-col items-center text-center group cursor-pointer ${
               isDragging
                 ? "border-[#B026FF] bg-[#B026FF]/5 shadow-[0_0_20px_rgba(176,38,255,0.15)]"
                 : "border-white/10 bg-[#0A0A0F] hover:border-white/20"
@@ -348,10 +359,11 @@ export default function BooksScreen() {
               Drag & drop your publication here, or <span className="text-[#00F0FF] underline cursor-pointer font-semibold">browse files</span>
             </p>
             <input
+              ref={fileInputRef}
               type="file"
               accept="application/pdf"
               onChange={handleFileSelect}
-              className="absolute inset-0 opacity-0 cursor-pointer"
+              className="hidden"
             />
             <div className="flex items-center gap-2 text-[10px] text-gray-500 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
               <Info className="w-3 h-3 text-[#B026FF]" />
@@ -530,32 +542,6 @@ export default function BooksScreen() {
 
               {/* Reader Adjustments */}
               <div className="flex items-center gap-4">
-                {/* Toggle between E-Reader & Original PDF if both are available */}
-                {activeBook.content && (pdfBlobUrl || activeBook.dataUrl) && (
-                  <div className="flex items-center bg-white/5 rounded-xl p-0.5 border border-white/5">
-                    <button
-                      onClick={() => setReaderMode("text")}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        readerMode === "text"
-                          ? "bg-gradient-to-r from-[#B026FF] to-[#00F0FF] text-white"
-                          : "text-gray-400 hover:text-white"
-                      }`}
-                    >
-                      ✨ Reflowable E-Reader
-                    </button>
-                    <button
-                      onClick={() => setReaderMode("pdf")}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        readerMode === "pdf"
-                          ? "bg-gradient-to-r from-[#B026FF] to-[#00F0FF] text-white"
-                          : "text-gray-400 hover:text-white"
-                      }`}
-                    >
-                      📄 Original PDF File
-                    </button>
-                  </div>
-                )}
-
                 {/* Theme select (Only for built-in text reading) */}
                 {readerMode === "text" && activeBook.content && (
                   <div className="flex items-center bg-white/5 rounded-xl p-0.5 border border-white/5">
